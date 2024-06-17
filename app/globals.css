@@ -24,8 +24,4 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-
-  .font-bolder {
-    font-weight: 900;
-  }
 }

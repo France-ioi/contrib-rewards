@@ -15,7 +15,7 @@ export default async function Header() {
           />
         </div>
 
-        <h1 className="text-6xl font-bolder leading-8 text-actions-hover">
+        <h1 className="text-6xl font-black leading-8 text-actions-hover">
           Kudoz
         </h1>
       </div>

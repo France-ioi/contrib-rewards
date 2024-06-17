@@ -22,7 +22,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-b-divider mt-8">
+    <nav className="border-b border-b-divider mt-8 mb-8">
       <div className="container mx-auto">
         <div className="flex gap-12">
           {navbarItems.map(item =>

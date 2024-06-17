@@ -8,17 +8,19 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      boxShadow: {
+        card: '0px 7px 10px 0px #0000001A',
       },
     },
     colors: {
-      'action': '#0F61FF',
+      action: '#0F61FF',
       'actions-hover': '#062A6E',
-      'divider': '#BEC4CF',
-      'light': '#616F82',
+      divider: '#BEC4CF',
+      light: '#616F82',
+      white: '#FFFFFF',
+      'container-grey': '#F2F2F2', // Surfaces/container-2
+      focus: '#0A0B0D',
+      'light-grey': '#0000001A',
     },
   },
   plugins: [],
