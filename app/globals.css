@@ -17,17 +17,15 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: radial-gradient(44.56% 21.46% at 0% 0%, #F8F9FA 0%, #E5EEFF 100%);
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .font-bolder {
+    font-weight: 900;
   }
 }
