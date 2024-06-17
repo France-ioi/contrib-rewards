@@ -18,6 +18,7 @@
 
 body {
   background: radial-gradient(44.56% 21.46% at 0% 0%, #F8F9FA 0%, #E5EEFF 100%);
+  padding-bottom: 2rem;
 }
 
 @layer utilities {

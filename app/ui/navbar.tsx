@@ -23,8 +23,8 @@ export default function Navbar() {
 
   return (
     <nav className="border-b border-b-divider mt-8 mb-8">
-      <div className="container mx-auto">
-        <div className="flex gap-12">
+      <div className="container px-4 mx-auto overflow-x-auto">
+        <div className="flex gap-6 md:gap-12">
           {navbarItems.map(item =>
             <NavbarItem
               key={item.href}

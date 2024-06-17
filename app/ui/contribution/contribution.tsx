@@ -12,20 +12,21 @@ interface ContributionProps {
 export default function Contribution({contribution}: ContributionProps) {
   return (
     <div className="rounded-lg shadow-card w-full p-4 bg-white">
-      <div className="flex gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
         <div className="grow">
-          <header className="flex gap-3 items-center">
+          <header className="flex gap-3 items-start">
             <Image
-              width={18}
-              height={18}
+              width={24}
+              height={24}
               src={MergeIcon}
               alt="Merge Request"
+              className="mt-1"
             />
             <h4 className="text-2xl">
               {contribution.title}
             </h4>
           </header>
-          <div className="flex mt-6 gap-6">
+          <div className="flex flex-col md:flex-row mt-6 gap-6">
             <div className="bg-container-grey rounded-lg p-4">
               <div className="text-light text-center">
                 2 authors, 3 backers
@@ -33,8 +34,8 @@ export default function Contribution({contribution}: ContributionProps) {
               <div className="text-action text-center">
                 3 sections edited
               </div>
-              <div className="flex border border-light-grey rounded-lg h-[40px] items-center mt-3">
-                <div className="flex gap-3 items-center px-6">
+              <div className="flex flex-col md:flex-row border border-light-grey rounded-lg items-center mt-3">
+                <div className="flex gap-3 items-center px-6 h-[40px]">
                   <div className="text-[#00CB39]">+{contribution.linesAdded}</div>
                   <div className="text-[#FF120F]">+{contribution.linesRemoved}</div>
                   <div className="flex gap-1 items-center">
@@ -44,14 +45,14 @@ export default function Contribution({contribution}: ContributionProps) {
                       src={FilesIcon}
                       alt="Files"
                     />
-                    <span>{contribution.filesChanged} file{contribution.filesChanged > 1 ? 's' : ''}</span>
+                    <span className="text-nowrap">{contribution.filesChanged} file{contribution.filesChanged > 1 ? 's' : ''}</span>
                   </div>
                 </div>
                 <a
                   href={contribution.link}
                   target="_blank"
                   rel="nofollow noopener"
-                  className="flex gap-1 items-center px-3"
+                  className="flex gap-1 items-center px-3 h-[40px] border-t border-t-light-grey md:border-t-0 w-full justify-center"
                 >
                   <span className="text-light">View at Gitlab</span>
                   <Image
@@ -71,8 +72,8 @@ export default function Contribution({contribution}: ContributionProps) {
             </div>
           </div>
         </div>
-        <div className="flex flex-col">
-          <header className="flex gap-1 items-center justify-center mb-4">
+        <div className="flex flex-row md:flex-col items-center justify-center gap-4">
+          <header className="flex gap-1 items-center justify-center grow md:grow-0">
             <Image
               width={24}
               height={24}
@@ -81,7 +82,7 @@ export default function Contribution({contribution}: ContributionProps) {
             />
             <span className="text-light">The Backing</span>
           </header>
-          <div className="grow bg-container-grey rounded-lg p-4 flex items-center">
+          <div className="grow bg-container-grey rounded-lg p-4 flex items-center justify-center">
             <span className="text-5xl font-medium text-focus">
               34 ꜩ
             </span>
