@@ -12,7 +12,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
         query: `query getMergeRequests($fullPath: ID!) {
   project(fullPath: $fullPath) {
     id
-    mergeRequests(state: merged, sort: MERGED_AT_DESC) {
+    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 2) {
       nodes {
         id
         mergedAt
@@ -59,7 +59,6 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
       }
 
       const {data: {project}} = response;
-      console.log('response', {project});
 
       const contributions: MergeRequest[] = [];
       for (let mergeRequest of project.mergeRequests.nodes) {
