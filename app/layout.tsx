@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import {Roboto} from 'next/font/google'
 import "./globals.css";
 import Header from "@/app/ui/header";
+import {siteConfig} from "@/my-nextui-app/config/site";
+import {Providers} from "@/app/providers";
 
 const roboto = Roboto({
   weight: '400',
@@ -9,7 +11,10 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Kudoz",
+  title: {
+    default: "Kudoz",
+    template: `%s - Kudoz`,
+  },
 };
 
 export default function RootLayout({
@@ -18,10 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="min-h-screen">
-      <body className={roboto.className}>
-        <Header/>
-        {children}
+    <html lang="en">
+      <body className={`min-h-screen ${roboto.className}`}>
+        <Providers>
+          <Header/>
+          {children}
+        </Providers>
       </body>
     </html>
   );

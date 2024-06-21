@@ -4,6 +4,11 @@ import CoinsIcon from '@/public/icons/coins.svg';
 import FilesIcon from '@/public/icons/files.svg';
 import GitlabIcon from '@/public/icons/gitlab.svg';
 import Image from "next/image";
+import type {Metadata} from "next";
+
+export const metadata: Metadata = {
+  title: "Contributions",
+};
 
 interface ContributionProps {
   contribution: MergeRequest,
@@ -83,7 +88,7 @@ export default function Contribution({contribution}: ContributionProps) {
             <span className="text-light">The Backing</span>
           </header>
           <div className="grow bg-container-grey rounded-lg p-4 flex items-center justify-center">
-            <span className="text-5xl font-medium text-focus">
+            <span className="text-5xl font-medium text-project-focus">
               34 ꜩ
             </span>
           </div>
