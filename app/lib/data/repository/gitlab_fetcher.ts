@@ -3,6 +3,48 @@ import {MergeRequest, RepositoryUser} from "@/app/lib/definitions";
 import config from "@/app/lib/config";
 
 export class GitlabFetcher extends AbstractRepositoryFetcher {
+  async getLatestMergeRequestId(): Promise<string> {
+    try {
+      const headers = {
+        'content-type': 'application/json',
+      };
+      const requestBody = {
+        query: `query getMergeRequests($fullPath: ID!) {
+  project(fullPath: $fullPath) {
+    id
+    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 1) {
+      nodes {
+        id
+      }
+    }
+  }
+}`,
+        variables: {
+          fullPath: config.repositoryPath,
+        }
+      };
+
+      const options = {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody),
+      };
+
+      const response = await (await fetch(config.repositoryEndpoint, options)).json();
+      if (response.errors) {
+        throw new Error(response.errors[0].message);
+      }
+
+      const {data: {project}} = response;
+      const mergeRequest = project.mergeRequests.nodes[0];
+
+      return mergeRequest.id;
+    } catch (err) {
+      console.error('Gitlab fetch error:', err);
+      throw new Error('Failed to fetch Gitlab latest merge request.');
+    }
+  }
+
   async getMergeRequests(params: any): Promise<MergeRequest[]> {
     try {
       const headers = {
@@ -12,7 +54,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
         query: `query getMergeRequests($fullPath: ID!) {
   project(fullPath: $fullPath) {
     id
-    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 2) {
+    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 1000) {
       nodes {
         id
         mergedAt
@@ -50,7 +92,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
       const options = {
         method: 'POST',
         headers,
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
       };
 
       const response = await (await fetch(config.repositoryEndpoint, options)).json();
@@ -97,7 +139,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
       return contributions;
     } catch (err) {
       console.error('Gitlab fetch error:', err);
-      throw new Error('Failed to fetch Gitlab contributions.');
+      throw new Error('Failed to fetch Gitlab merge requests.');
     }
   }
 }

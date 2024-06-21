@@ -35,3 +35,10 @@ export interface User {
   id: string,
   gitlabId: string,
 }
+
+export interface DonationInput {
+  mergeRequestId: string,
+  review?: string,
+  amount?: number,
+  splits: any[], //TODO
+}

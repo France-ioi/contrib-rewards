@@ -1,5 +1,5 @@
 import {Metadata} from "next";
-import {fetchContributions} from "@/app/lib/data/contributions";
+import {fetchMergeRequests} from "@/app/lib/data/contributions";
 import Contribution from "@/app/ui/contribution/contribution";
 
 export const metadata: Metadata = {
@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const contributions = await fetchContributions();
+  const contributions = await fetchMergeRequests();
 
   return (
     <main className="container mx-auto px-4">
@@ -15,7 +15,7 @@ export default async function Page() {
         {contributions.map(contribution =>
           <Contribution
             key={contribution.id}
-            contribution={contribution}
+            mergeRequest={contribution}
           />
         )}
       </div>

@@ -8,17 +8,20 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  firstName     String
-  lastName      String
-  login         String
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  Session       Session[]
-  Account       Account?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  firstName          String?
+  lastName           String?
+  login              String
+  email              String    @unique
+  emailVerified      DateTime?
+  image              String?
+  Session            Session[]
+  Account            Account?
+  Donation           Donation[]
+  DonationSplit      DonationSplit[]
+  MergeRequestAuthor MergeRequestAuthor[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model Account {
@@ -63,4 +66,52 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Donation {
+  id           String              @id @default(cuid())
+  authorId     String
+  review       String              @db.Text
+  createdAt    DateTime            @default(now())
+  author       User                @relation(fields: [authorId], references: [id])
+  amount       Decimal             @db.Decimal(18,8)
+  splits       DonationSplit[]
+
+  @@index([authorId])
+}
+
+model DonationSplit {
+  id           String   @id @default(cuid())
+  donationId   String
+  recipientId  String
+  amount       Decimal  @db.Decimal(18,8)
+  donation     Donation @relation(fields: [donationId], references: [id])
+  recipient    User     @relation(fields: [recipientId], references: [id])
+
+  @@index([donationId])
+  @@index([recipientId])
+}
+
+model MergeRequest {
+  id              String   @id @default(cuid())
+  title           String
+  mergedAt        DateTime
+  linesAdded      Int
+  linesRemoved    Int
+  filesChanged    Int
+  sectionsChanged Int
+  link            String
+  authors         MergeRequestAuthor[]
+}
+
+model MergeRequestAuthor {
+  id              String       @id @default(cuid())
+  mergeRequestId  String
+  authorId        String
+  linesAdded      Int
+  linesRemoved    Int
+  filesChanged    Int
+  sectionsChanged Int
+  author          User         @relation(fields: [authorId], references: [id])
+  mergeRequest    MergeRequest @relation(fields: [mergeRequestId], references: [id])
 }

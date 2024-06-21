@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import {PrismaAdapter} from "@auth/prisma-adapter"
 import config from "@/app/lib/config";
-import prismaClient from "@/app/lib/db";
+import prisma from "@/app/lib/db";
 
 declare module "next-auth" {
   interface User {
@@ -12,7 +12,7 @@ declare module "next-auth" {
 export const {handlers, signIn, signOut, auth} = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 
-  adapter: PrismaAdapter(prismaClient),
+  adapter: PrismaAdapter(prisma),
 
   providers: [
     {

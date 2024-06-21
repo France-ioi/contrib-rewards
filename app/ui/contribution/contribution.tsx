@@ -1,3 +1,5 @@
+"use client";
+
 import {MergeRequest} from "@/app/lib/definitions";
 import MergeIcon from '@/public/icons/merge.svg';
 import CoinsIcon from '@/public/icons/coins.svg';
@@ -5,16 +7,35 @@ import FilesIcon from '@/public/icons/files.svg';
 import GitlabIcon from '@/public/icons/gitlab.svg';
 import Image from "next/image";
 import type {Metadata} from "next";
+import ContributionModal from "@/app/ui/contribution/contribution-modal";
+import {useState} from "react";
+import {UiButton} from "@/app/ui/button";
 
 export const metadata: Metadata = {
   title: "Contributions",
 };
 
 interface ContributionProps {
-  contribution: MergeRequest,
+  mergeRequest: MergeRequest,
 }
 
-export default function Contribution({contribution}: ContributionProps) {
+export default function Contribution({mergeRequest}: ContributionProps) {
+  const giveOptions = [
+    {amount: 1},
+    {amount: 10},
+    {amount: 18, lead: true},
+    {amount: 1000},
+    {amount: null},
+  ];
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [givenAmount, setGivenAmount] = useState<number|null>(null);
+
+  const openGiveModal = (amount: number|null) => {
+    setGivenAmount(amount);
+    setModalOpen(true);
+  };
+
   return (
     <div className="rounded-lg shadow-card w-full p-4 bg-white">
       <div className="flex flex-col md:flex-row gap-6">
@@ -28,7 +49,7 @@ export default function Contribution({contribution}: ContributionProps) {
               className="mt-1"
             />
             <h4 className="text-2xl">
-              {contribution.title}
+              {mergeRequest.title}
             </h4>
           </header>
           <div className="flex flex-col md:flex-row mt-6 gap-6">
@@ -41,8 +62,8 @@ export default function Contribution({contribution}: ContributionProps) {
               </div>
               <div className="flex flex-col md:flex-row border border-light-grey rounded-lg items-center mt-3">
                 <div className="flex gap-3 items-center px-6 h-[40px]">
-                  <div className="text-[#00CB39]">+{contribution.linesAdded}</div>
-                  <div className="text-[#FF120F]">+{contribution.linesRemoved}</div>
+                  <div className="text-[#00CB39]">+{mergeRequest.linesAdded}</div>
+                  <div className="text-[#FF120F]">+{mergeRequest.linesRemoved}</div>
                   <div className="flex gap-1 items-center">
                     <Image
                       width={14}
@@ -50,11 +71,11 @@ export default function Contribution({contribution}: ContributionProps) {
                       src={FilesIcon}
                       alt="Files"
                     />
-                    <span className="text-nowrap">{contribution.filesChanged} file{contribution.filesChanged > 1 ? 's' : ''}</span>
+                    <span className="text-nowrap">{mergeRequest.filesChanged} file{mergeRequest.filesChanged > 1 ? 's' : ''}</span>
                   </div>
                 </div>
                 <a
-                  href={contribution.link}
+                  href={mergeRequest.link}
                   target="_blank"
                   rel="nofollow noopener"
                   className="flex gap-1 items-center px-3 h-[40px] border-t border-t-light-grey md:border-t-0 w-full justify-center"
@@ -72,8 +93,29 @@ export default function Contribution({contribution}: ContributionProps) {
             <div>
               top donor
             </div>
-            <div>
-              give
+            <div className="text-center flex-grow">
+              <ContributionModal
+                mergeRequest={mergeRequest}
+                amount={givenAmount}
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+              />
+
+              <h5 className="text-light text-xl">Show your appreciation and give...</h5>
+              <div className="md:flex md:flex-wrap gap-2 mt-4 md:mt-6 md:justify-center text-nowrap overflow-x-auto">
+                {giveOptions.map(option =>
+                  <UiButton
+                    key={option.amount}
+                    color={option.lead ? 'lead' : 'outlined'}
+                    className="mr-2"
+                    onClick={() => openGiveModal(option.amount)}
+                  >
+                    {option.amount ? <>
+                      {option.amount} ꜩ {option.lead ? 'to take the lead' : ''}
+                    </> : <>Give other amount</>}
+                  </UiButton>
+                )}
+              </div>
             </div>
           </div>
         </div>
