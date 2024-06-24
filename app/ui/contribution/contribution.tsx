@@ -1,6 +1,5 @@
 "use client";
 
-import {MergeRequest} from "@/app/lib/definitions";
 import MergeIcon from '@/public/icons/merge.svg';
 import CoinsIcon from '@/public/icons/coins.svg';
 import FilesIcon from '@/public/icons/files.svg';
@@ -10,6 +9,7 @@ import type {Metadata} from "next";
 import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useState} from "react";
 import {UiButton} from "@/app/ui/button";
+import {MergeRequest} from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Contributions",
@@ -58,7 +58,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                 2 authors, 3 backers
               </div>
               <div className="text-action text-center">
-                3 sections edited
+                {mergeRequest.sectionsChanged} section{mergeRequest.sectionsChanged > 1 ? 's' : ''} edited
               </div>
               <div className="flex flex-col md:flex-row border border-light-grey rounded-lg items-center mt-3">
                 <div className="flex gap-3 items-center px-6 h-[40px]">

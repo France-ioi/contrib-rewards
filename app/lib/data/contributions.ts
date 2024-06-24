@@ -1,6 +1,6 @@
 import {GitlabFetcher} from "@/app/lib/data/repository/gitlab_fetcher";
-import {MergeRequest} from "@/app/lib/definitions";
 import prisma from "@/app/lib/db";
+import {MergeRequest, Prisma} from "@prisma/client";
 
 export async function fetchMergeRequests(): Promise<MergeRequest[]> {
   const gitlabFetcher = new GitlabFetcher();
@@ -14,9 +14,7 @@ export async function fetchMergeRequests(): Promise<MergeRequest[]> {
       take: 1,
     });
 
-    console.log({latestMergeRequestID, latestMergeRequestInBase})
-
-    if (!latestMergeRequestInBase.length || latestMergeRequestID !== latestMergeRequestInBase[0].id) {
+    if (!latestMergeRequestInBase.length || latestMergeRequestID !== latestMergeRequestInBase[0].repositoryId) {
       // TODO: limit to current period
       const mergeRequests = await gitlabFetcher.getMergeRequests({});
       await syncMergeRequestsWithDatabase(mergeRequests);
@@ -26,10 +24,26 @@ export async function fetchMergeRequests(): Promise<MergeRequest[]> {
     console.error(e);
   }
 
-  return [];
-  // return mergeRequests;
+  // TODO: limit to current period
+  return await prisma.mergeRequest.findMany();
 }
 
-async function syncMergeRequestsWithDatabase(mergeRequests: MergeRequest[]) {
-  console.log('sync', mergeRequests);
+async function syncMergeRequestsWithDatabase(mergeRequests: Prisma.MergeRequestCreateInput[]) {
+  for (let mergeRequest of mergeRequests) {
+    let mergeRequestDb = await prisma.mergeRequest.findUnique({
+      where: {
+        repositoryId: mergeRequest.repositoryId,
+      },
+    });
+
+    if (null !== mergeRequestDb) {
+      // Don't reimport merge request. If necessary, we could update it here
+      continue;
+    }
+
+    mergeRequestDb = await prisma.mergeRequest.create({
+      data: mergeRequest,
+    });
+  }
 }
+

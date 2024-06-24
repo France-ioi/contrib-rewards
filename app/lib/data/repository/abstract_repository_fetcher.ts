@@ -1,5 +1,5 @@
-import {MergeRequest} from "@/app/lib/definitions";
+import {Prisma} from "@prisma/client";
 
 export abstract class AbstractRepositoryFetcher {
-  abstract getMergeRequests(params: any): Promise<MergeRequest[]>;
+  abstract getMergeRequests(params: any): Promise<Prisma.MergeRequestCreateInput[]>;
 }

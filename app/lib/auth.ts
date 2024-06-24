@@ -33,9 +33,9 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
         return {
           id: String(profile.id),
           login: profile.login,
-          firstName: profile.first_name,
-          lastName: profile.last_name,
+          name: profile.first_name + ' ' + profile.last_name,
           email: profile.primary_email,
+          image: profile.picture,
         };
       },
     }

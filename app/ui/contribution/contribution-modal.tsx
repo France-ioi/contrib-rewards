@@ -1,7 +1,8 @@
-import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button} from "@nextui-org/react";
-import {DonationInput, MergeRequest} from "@/app/lib/definitions";
+import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
+import {DonationInput} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation} from "@/app/lib/data/donations";
+import {MergeRequest} from "@prisma/client";
 
 interface ContributionModalProps {
   mergeRequest: MergeRequest,
