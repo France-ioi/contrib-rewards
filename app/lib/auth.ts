@@ -2,17 +2,32 @@ import NextAuth from "next-auth";
 import {PrismaAdapter} from "@auth/prisma-adapter"
 import config from "@/app/lib/config";
 import prisma from "@/app/lib/db";
+import {User} from "@prisma/client";
 
 declare module "next-auth" {
-  interface User {
-    login: string,
+  interface Session {
+    user: User,
   }
 }
+
+const prismaAdapter = PrismaAdapter(prisma);
+
+// @ts-ignore
+prismaAdapter.createUser = (data: User) => {
+  const dataWithoutEmailVerified = {...data};
+
+  // @ts-ignore
+  delete dataWithoutEmailVerified.emailVerified;
+
+  return prisma.user.create({
+    data: dataWithoutEmailVerified,
+  });
+};
 
 export const {handlers, signIn, signOut, auth} = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
 
-  adapter: PrismaAdapter(prisma),
+  adapter: prismaAdapter,
 
   providers: [
     {

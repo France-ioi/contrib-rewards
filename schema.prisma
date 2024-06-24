@@ -67,15 +67,17 @@ model VerificationToken {
 }
 
 model Donation {
-  id           String              @id @default(cuid())
-  authorId     String
-  review       String              @db.Text
-  createdAt    DateTime            @default(now())
-  author       User                @relation(fields: [authorId], references: [id])
-  amount       Decimal             @db.Decimal(18,8)
-  splits       DonationSplit[]
+  id             String              @id @default(cuid())
+  donorId      String
+  mergeRequestId String
+  review         String?             @db.Text
+  createdAt      DateTime            @default(now())
+  donor          User                @relation(fields: [donorId], references: [id])
+  mergeRequest   MergeRequest        @relation(fields: [mergeRequestId], references: [id])
+  amount         Decimal             @db.Decimal(18,8)
+  splits         DonationSplit[]
 
-  @@index([authorId])
+  @@index([donorId])
 }
 
 model DonationSplit {
@@ -102,6 +104,7 @@ model MergeRequest {
   sectionsChanged Int
   link            String
   authors         MergeRequestAuthor[]
+  donations       Donation[]
 }
 
 model MergeRequestAuthor {

@@ -1,18 +1,21 @@
 import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
-import {DonationInput} from "@/app/lib/definitions";
+import {DonationInput, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation} from "@/app/lib/data/donations";
-import {MergeRequest} from "@prisma/client";
+import {useState} from "react";
 
 interface ContributionModalProps {
-  mergeRequest: MergeRequest,
+  mergeRequest: MergeRequestWithAuthors,
   amount: number|null,
   open: boolean,
   onClose: () => void,
 }
 
 export default function ContributionModal({mergeRequest, amount, open, onClose}: ContributionModalProps) {
+  const [loading, setLoading] = useState(false);
+
   const confirm = async () => {
+    setLoading(true);
     const donationInput: DonationInput = {
       mergeRequestId: mergeRequest.id,
       amount: Number(amount),
@@ -20,9 +23,11 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
     };
     const result = await createDonation(donationInput);
     console.log('result', result);
+
+    setLoading(false);
   };
 
-  const splitNeeded = true;
+  const splitNeeded = mergeRequest.authors.length > 1;
 
   return (
     <Modal
@@ -68,15 +73,16 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
                 <p>split buttons</p>
               </>}
 
-              <p className="text-light">
-                You are about to transfer a total of 15tz to the merge author(s), as shown above.
+              <p className="text-light mt-6">
+                You are about to transfer a total of {amount}ꜩ to the merge author{splitNeeded ? 's' : ''}, as shown above.
               </p>
 
-              <div className="text-center mt-6">
+              <div className="text-center mt-2">
                 <UiButton
                   color="lead"
                   className="w-full md:w-min"
                   onPress={confirm}
+                  isLoading={loading}
                 >
                   Confirm and send
                 </UiButton>

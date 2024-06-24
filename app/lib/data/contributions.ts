@@ -1,8 +1,9 @@
 import {GitlabFetcher} from "@/app/lib/data/repository/gitlab_fetcher";
 import prisma from "@/app/lib/db";
-import {MergeRequest, Prisma} from "@prisma/client";
+import {Prisma} from "@prisma/client";
+import {MergeRequestWithAuthors} from "@/app/lib/definitions";
 
-export async function fetchMergeRequests(): Promise<MergeRequest[]> {
+export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
   const gitlabFetcher = new GitlabFetcher();
 
   try {
@@ -25,7 +26,11 @@ export async function fetchMergeRequests(): Promise<MergeRequest[]> {
   }
 
   // TODO: limit to current period
-  return await prisma.mergeRequest.findMany();
+  return prisma.mergeRequest.findMany({
+    include: {
+      authors: true,
+    },
+  });
 }
 
 async function syncMergeRequestsWithDatabase(mergeRequests: Prisma.MergeRequestCreateInput[]) {

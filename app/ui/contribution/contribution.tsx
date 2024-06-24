@@ -9,17 +9,21 @@ import type {Metadata} from "next";
 import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useState} from "react";
 import {UiButton} from "@/app/ui/button";
-import {MergeRequest} from "@prisma/client";
+import {MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {useSession} from "next-auth/react";
+import {signIn} from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Contributions",
 };
 
 interface ContributionProps {
-  mergeRequest: MergeRequest,
+  mergeRequest: MergeRequestWithAuthors,
 }
 
 export default function Contribution({mergeRequest}: ContributionProps) {
+  const {data: session} = useSession();
+
   const giveOptions = [
     {amount: 1},
     {amount: 10},
@@ -31,7 +35,12 @@ export default function Contribution({mergeRequest}: ContributionProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [givenAmount, setGivenAmount] = useState<number|null>(null);
 
-  const openGiveModal = (amount: number|null) => {
+  const openGiveModal = async (amount: number|null) => {
+    if (!session?.user) {
+      signIn('france-ioi');
+      return;
+    }
+
     setGivenAmount(amount);
     setModalOpen(true);
   };
