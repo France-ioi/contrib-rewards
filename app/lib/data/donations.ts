@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from "@/app/lib/db";
+import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {DonationFull, DonationInput} from "@/app/lib/definitions";
 import {auth} from "@/app/lib/auth";
 import {Donation, User} from "@prisma/client";
@@ -177,19 +177,4 @@ export async function getUserDonationStats(user: User) {
     firstDonationDate: firstDonationDate._min.createdAt,
     currentTopDonationSpots: topDonationsCount._count.bestDonorId,
   };
-}
-
-// recursive function looping deeply through an object to find Decimals
-const transformDecimalsToNumbers = (obj: any) => {
-  if (!obj) {
-    return
-  }
-
-  for (const key of Object.keys(obj)) {
-    if (Decimal.isDecimal(obj[key])) {
-      obj[key] = obj[key].toNumber()
-    } else if (typeof obj[key] === 'object') {
-      transformDecimalsToNumbers(obj[key])
-    }
-  }
 }

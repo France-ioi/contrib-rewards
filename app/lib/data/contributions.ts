@@ -1,5 +1,5 @@
 import {GitlabFetcher} from "@/app/lib/data/repository/gitlab_fetcher";
-import prisma from "@/app/lib/db";
+import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {Prisma} from "@prisma/client";
 import {MergeRequestWithAuthors} from "@/app/lib/definitions";
 
@@ -27,7 +27,7 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
 
   // TODO: limit to current period
   // TODO: add backers count and total donation amount
-  return prisma.mergeRequest.findMany({
+  const mergeRequests = prisma.mergeRequest.findMany({
     include: {
       authors: true,
       bestDonor: {
@@ -38,6 +38,10 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
       },
     },
   });
+
+  transformDecimalsToNumbers(mergeRequests);
+
+  return mergeRequests;
 }
 
 async function syncMergeRequestsWithDatabase(mergeRequests: Prisma.MergeRequestCreateInput[]) {

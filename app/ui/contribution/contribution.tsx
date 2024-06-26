@@ -15,6 +15,7 @@ import {signIn} from "next-auth/react";
 import config from "@/app/lib/config";
 import {inter} from "@/app/ui/fonts";
 import UserAvatar from "@/app/ui/user-avatar";
+import {getLeadAmountFromCurrentAmount} from "@/app/lib/helpers";
 
 interface ContributionProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -22,14 +23,37 @@ interface ContributionProps {
 
 export default function Contribution({mergeRequest}: ContributionProps) {
   const {data: session} = useSession();
+  const user = session?.user;
 
-  const giveOptions = [
-    {amount: 1},
-    {amount: 10},
-    {amount: 18, lead: true},
-    {amount: 1000},
+  const defaultAmounts = [1, 10, 1000];
+
+  const giveOptions: {amount: number|null, lead?: boolean}[] = [
     {amount: null},
   ];
+  if (mergeRequest.bestDonorId !== user?.id) {
+    giveOptions.push({
+      amount: getLeadAmountFromCurrentAmount(Number(mergeRequest.bestDonorAmount ?? 0)),
+      lead: true,
+    });
+  }
+
+  for (let amount of defaultAmounts) {
+    if (!(giveOptions.find(a => a.amount === amount))) {
+      giveOptions.push({amount});
+    }
+  }
+
+  giveOptions.sort((a, b) => {
+    if (null === a.amount) {
+      return 1;
+    }
+    if (null === b.amount) {
+      return -1;
+    }
+
+    return a.amount - b.amount;
+  });
+
 
   const [modalOpen, setModalOpen] = useState(false);
   const [givenAmount, setGivenAmount] = useState<number|null>(null);
@@ -61,42 +85,45 @@ export default function Contribution({mergeRequest}: ContributionProps) {
             </h4>
           </header>
           <div className="flex flex-col md:flex-row mt-6 gap-6">
-            <div className="bg-container-grey rounded-lg p-4">
-              <div className="text-light text-center">
-                {mergeRequest.authors.length} author{mergeRequest.authors.length > 1 ? 's' : ''}, 3 backers
-                {/*TODO*/}
-              </div>
-              <div className="text-action text-center">
-                {mergeRequest.sectionsChanged} section{mergeRequest.sectionsChanged > 1 ? 's' : ''} edited
-              </div>
-              <div className="flex flex-col md:flex-row border border-light-grey rounded-lg items-center mt-3">
-                <div className="flex gap-3 items-center px-6 h-[40px]">
-                  <div className="text-[#00CB39]">+{mergeRequest.linesAdded}</div>
-                  <div className="text-[#FF120F]">+{mergeRequest.linesRemoved}</div>
-                  <div className="flex gap-1 items-center">
-                    <Image
-                      width={14}
-                      height={14}
-                      src={FilesIcon}
-                      alt="Files"
-                    />
-                    <span className="text-nowrap">{mergeRequest.filesChanged} file{mergeRequest.filesChanged > 1 ? 's' : ''}</span>
-                  </div>
+            <div className="bg-container-grey rounded-lg p-4 flex items-center justify-center">
+              <div>
+                <div className="text-light text-center">
+                  {mergeRequest.authors.length} author{mergeRequest.authors.length > 1 ? 's' : ''}, 3 backers
+                  {/*TODO*/}
                 </div>
-                <a
-                  href={mergeRequest.link}
-                  target="_blank"
-                  rel="nofollow noopener"
-                  className="flex gap-1 items-center px-3 h-[40px] border-t border-t-light-grey md:border-t-0 w-full justify-center"
-                >
-                  <span className="text-light">View at Gitlab</span>
-                  <Image
-                    width={16}
-                    height={16}
-                    src={GitlabIcon}
-                    alt="Gitlab"
-                  />
-                </a>
+                <div className="text-action text-center">
+                  {mergeRequest.sectionsChanged} section{mergeRequest.sectionsChanged > 1 ? 's' : ''} edited
+                </div>
+                <div className="flex flex-col md:flex-row border border-light-grey rounded-lg items-center mt-3">
+                  <div className="flex gap-3 items-center px-6 h-[40px]">
+                    <div className="text-[#00CB39]">+{mergeRequest.linesAdded}</div>
+                    <div className="text-[#FF120F]">+{mergeRequest.linesRemoved}</div>
+                    <div className="flex gap-1 items-center">
+                      <Image
+                        width={14}
+                        height={14}
+                        src={FilesIcon}
+                        alt="Files"
+                      />
+                      <span
+                        className="text-nowrap">{mergeRequest.filesChanged} file{mergeRequest.filesChanged > 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                  <a
+                    href={mergeRequest.link}
+                    target="_blank"
+                    rel="nofollow noopener"
+                    className="flex gap-1 items-center px-3 h-[40px] border-t border-t-light-grey md:border-t-0 w-full justify-center"
+                  >
+                    <span className="text-light">View at Gitlab</span>
+                    <Image
+                      width={16}
+                      height={16}
+                      src={GitlabIcon}
+                      alt="Gitlab"
+                    />
+                  </a>
+                </div>
               </div>
             </div>
             {mergeRequest.bestDonor && <div>
