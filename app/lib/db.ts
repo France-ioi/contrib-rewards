@@ -1,10 +1,15 @@
 import {PrismaClient} from "@prisma/client";
-const prismaPrototype = require('@prisma/client');
 
-const prisma = new PrismaClient();
+const prismaClientSingleton = () => {
+  return new PrismaClient()
+};
 
-prismaPrototype.Decimal.prototype.toJSON = function() {
-  return this.toNumber();
-}
+declare const globalThis: {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
+
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
 
 export default prisma;

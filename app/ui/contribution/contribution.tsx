@@ -4,6 +4,7 @@ import MergeIcon from '@/public/icons/merge.svg';
 import CoinsIcon from '@/public/icons/coins.svg';
 import FilesIcon from '@/public/icons/files.svg';
 import GitlabIcon from '@/public/icons/gitlab.svg';
+import MedalTopIcon from '@/public/icons/medal-top.svg';
 import Image from "next/image";
 import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useState} from "react";
@@ -12,6 +13,8 @@ import {MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {useSession} from "next-auth/react";
 import {signIn} from "next-auth/react";
 import config from "@/app/lib/config";
+import {inter} from "@/app/ui/fonts";
+import UserAvatar from "@/app/ui/user-avatar";
 
 interface ContributionProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -60,7 +63,8 @@ export default function Contribution({mergeRequest}: ContributionProps) {
           <div className="flex flex-col md:flex-row mt-6 gap-6">
             <div className="bg-container-grey rounded-lg p-4">
               <div className="text-light text-center">
-                2 authors, 3 backers
+                {mergeRequest.authors.length} author{mergeRequest.authors.length > 1 ? 's' : ''}, 3 backers
+                {/*TODO*/}
               </div>
               <div className="text-action text-center">
                 {mergeRequest.sectionsChanged} section{mergeRequest.sectionsChanged > 1 ? 's' : ''} edited
@@ -95,9 +99,47 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                 </a>
               </div>
             </div>
-            <div>
-              top donor
-            </div>
+            {mergeRequest.bestDonor && <div>
+              <div className="flex items-center gap-3">
+                <UserAvatar
+                  user={mergeRequest.bestDonor}
+                  size={70}
+                />
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Image
+                      width={16}
+                      height={16}
+                      src={MedalTopIcon}
+                      alt="Top donor"
+                    />
+                    <div className="text-action">
+                      Top donor review
+                    </div>
+                  </div>
+
+                  <div className="text-2xl">
+                    {mergeRequest.bestDonor.name}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-container-grey p-4 flex flex-col md:flex-row gap-8 rounded-lg mt-5 relative">
+                <div
+                  className="border-solid border-b-container-grey border-b-[12px] border-x-transparent border-x-[12px] border-t-0 absolute top-[-12px] left-[24px]"
+                ></div>
+
+                <p
+                  className={`text-3xl ${inter.className}`}>
+                  {mergeRequest.bestDonorAmount?.toString()}<span className="text-xl">{config.currency}</span>
+                </p>
+
+                <div className="text-light">
+                  “{mergeRequest.bestDonorReview}”
+                </div>
+              </div>
+            </div>}
             <div className="text-center flex-grow">
               <ContributionModal
                 mergeRequest={mergeRequest}

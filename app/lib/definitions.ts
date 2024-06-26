@@ -11,6 +11,12 @@ export interface DonationInput {
 export type MergeRequestWithAuthors = Prisma.MergeRequestGetPayload<{
   include: {
     authors: true,
+    bestDonor: {
+      select: {
+        name: true,
+        image: true,
+      },
+    },
   },
 }>
 

@@ -15,13 +15,11 @@ export default async function HeaderStats() {
 
   const targetPercentage = 25 + Math.min(100, Math.max(0, donationStats.amount / config.donationTarget * 75));
 
-  console.log({donationStats, periodData})
-
   return (
     <section className="container mx-auto px-4 my-12 md:my-20">
       <div className="flex flex-col md:flex-row gap-6 md:gap-12 items-center">
         <h1 className="basis-1/2 bg-clip-text bg-gradient-to-b text-transparent from-[#0F61FF] to-[#A32FB5] text-3xl md:text-6xl font-medium leading-9 md:leading-[70px]">
-          We have raised {donationStats.amount} out of {config.donationTarget}{config.currency} target this month.
+          We have raised {donationStats.amount} out of {config.donationTarget}{config.currency} target {config.donationPeriodLabel}.
         </h1>
         <div className="basis-1/2 max-w-[500px] w-full">
           <div className="rounded-full bg-actions-hover relative h-[50px] md:h-[70px]">

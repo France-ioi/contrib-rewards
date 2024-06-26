@@ -23,3 +23,11 @@ export function getCurrentPeriodData() {
     periodPercentage: 1 - timeToEnd / periodTotalTime,
   }
 }
+
+export function uppercaseFirst(text: string) {
+  if (!text) {
+    return text;
+  }
+
+  return text.substring(0, 1).toLocaleUpperCase() + text.substring(1);
+}

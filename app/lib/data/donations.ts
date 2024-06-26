@@ -3,9 +3,9 @@
 import prisma from "@/app/lib/db";
 import {DonationFull, DonationInput} from "@/app/lib/definitions";
 import {auth} from "@/app/lib/auth";
-import {User} from "@prisma/client";
+import {Donation, User} from "@prisma/client";
 import {Decimal} from "@prisma/client/runtime/binary";
-import {getCurrentPeriodData, getCurrentPeriodStart} from "@/app/lib/helpers";
+import {getCurrentPeriodData} from "@/app/lib/helpers";
 
 export async function createDonation(donationInput: DonationInput) {
   const session = await auth();
@@ -21,9 +21,63 @@ export async function createDonation(donationInput: DonationInput) {
       review: donationInput.review,
       donorId: user.id,
     },
-  })
+  });
 
-  console.log('create donation');
+  await recomputeMergeRequestBestDonation(donationInput.mergeRequestId);
+
+  return donation;
+}
+
+export async function recomputeMergeRequestBestDonation(mergeRequestId: string) {
+  const allDonations = await prisma.donation.findMany({
+    where: {
+      mergeRequestId,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
+
+  const donationsByDonor: {[key: string]: Donation[]} = {};
+  for (let donation of allDonations) {
+    if (!(donation.donorId in donationsByDonor)) {
+      donationsByDonor[donation.donorId] = [];
+    }
+    donationsByDonor[donation.donorId].push(donation);
+  }
+
+  let bestDonorAmount: number|null = null;
+  let bestDonorId: string|null = null;
+  let bestDonorReview: string|null = null;
+  for (let donations of Object.values(donationsByDonor)) {
+    let totalAmount = 0;
+    let donorId: string|null = null;
+    let donorReview: string|null = null;
+    for (let donation of donations) {
+      donorId = donation.donorId;
+      totalAmount += donation.amount.toNumber();
+      if (donation.review) {
+        donorReview = donation.review;
+      }
+    }
+
+    if (null === bestDonorAmount || totalAmount > bestDonorAmount) {
+      bestDonorAmount = totalAmount;
+      bestDonorId = donorId;
+      bestDonorReview = donorReview;
+    }
+  }
+
+  await prisma.mergeRequest.update({
+    where: {
+      id: mergeRequestId,
+    },
+    data: {
+      bestDonorId,
+      bestDonorAmount,
+      bestDonorReview,
+    },
+  });
 }
 
 export async function fetchDonations(user: User): Promise<DonationFull[]> {
@@ -75,6 +129,55 @@ export async function getDonationStats(): Promise<{amount: number}> {
   };
 }
 
+export async function getUserDonationStats(user: User) {
+  const donationPeriodStart = getCurrentPeriodData().periodStart;
+
+  const totalAmountPeriod = await prisma.donation.aggregate({
+    where: {
+      createdAt: {
+        gte: donationPeriodStart,
+      },
+      donorId: user.id,
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const totalAmount = await prisma.donation.aggregate({
+    where: {
+      donorId: user.id,
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const firstDonationDate = await prisma.donation.aggregate({
+    where: {
+      donorId: user.id,
+    },
+    _min: {
+      createdAt: true,
+    },
+  });
+
+  const topDonationsCount = await prisma.mergeRequest.aggregate({
+    where: {
+      bestDonorId: user.id,
+    },
+    _count: {
+      bestDonorId: true,
+    },
+  });
+
+  return {
+    periodAmount: totalAmountPeriod._sum.amount?.toNumber() ?? 0,
+    totalAmount: totalAmount._sum.amount?.toNumber() ?? 0,
+    firstDonationDate: firstDonationDate._min.createdAt,
+    currentTopDonationSpots: topDonationsCount._count.bestDonorId,
+  };
+}
 
 // recursive function looping deeply through an object to find Decimals
 const transformDecimalsToNumbers = (obj: any) => {

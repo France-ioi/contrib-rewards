@@ -8,18 +8,19 @@ datasource db {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  name               String?
-  login              String?
-  email              String    @unique
-  image              String?
-  Session            Session[]
-  Account            Account?
-  Donation           Donation[]
-  DonationSplit      DonationSplit[]
-  MergeRequestAuthor MergeRequestAuthor[]
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                   String    @id @default(cuid())
+  name                 String?
+  login                String?
+  email                String    @unique
+  image                String?
+  Session              Session[]
+  Account              Account?
+  Donation             Donation[]
+  DonationSplit        DonationSplit[]
+  MergeRequestAuthor   MergeRequestAuthor[]
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  MergeRequestTopDonor MergeRequest[]
 }
 
 model Account {
@@ -67,15 +68,15 @@ model VerificationToken {
 }
 
 model Donation {
-  id             String              @id @default(cuid())
-  donorId        String
-  mergeRequestId String
-  review         String?             @db.Text
-  createdAt      DateTime            @default(now())
-  donor          User                @relation(fields: [donorId], references: [id])
-  mergeRequest   MergeRequest        @relation(fields: [mergeRequestId], references: [id])
-  amount         Decimal             @db.Decimal(18,8)
-  splits         DonationSplit[]
+  id                 String              @id @default(cuid())
+  donorId            String
+  mergeRequestId     String
+  review             String?             @db.Text
+  createdAt          DateTime            @default(now())
+  donor              User                @relation(fields: [donorId], references: [id])
+  mergeRequest       MergeRequest        @relation(fields: [mergeRequestId], references: [id])
+  amount             Decimal             @db.Decimal(18,8)
+  splits             DonationSplit[]
 
   @@index([donorId])
 }
@@ -94,17 +95,21 @@ model DonationSplit {
 }
 
 model MergeRequest {
-  id              String   @id @default(cuid())
-  repositoryId    String   @unique
-  title           String
-  mergedAt        DateTime
-  linesAdded      Int
-  linesRemoved    Int
-  filesChanged    Int
-  sectionsChanged Int
-  link            String
-  authors         MergeRequestAuthor[]
-  donations       Donation[]
+  id               String                 @id @default(cuid())
+  repositoryId     String                 @unique
+  title            String
+  mergedAt         DateTime
+  linesAdded       Int
+  linesRemoved     Int
+  filesChanged     Int
+  sectionsChanged  Int
+  link             String
+  bestDonorId      String?
+  bestDonorAmount  Decimal?               @db.Decimal(18,8)
+  bestDonorReview  String?                @db.Text
+  authors          MergeRequestAuthor[]
+  donations        Donation[]
+  bestDonor        User?                  @relation(fields: [bestDonorId], references: [id])
 }
 
 model MergeRequestAuthor {
