@@ -5,6 +5,10 @@ interface Config {
   oauthServerUrl: string,
   oauthClientId: string,
   oauthSecretId: string,
+  donationPeriodMonths: number,
+  donationPeriodLabel: string,
+  donationTarget: number,
+  currency: string,
 }
 
 const appConfig: Config = {
@@ -14,6 +18,10 @@ const appConfig: Config = {
   oauthServerUrl: String(process.env.NEXT_PUBLIC_OAUTH_SERVER_URL),
   oauthClientId: String(process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID),
   oauthSecretId: String(process.env.OAUTH_SECRET_ID),
+  donationPeriodMonths: Number(process.env.DONATION_PERIOD_MONTHS),
+  donationPeriodLabel: String(process.env.DONATION_PERIOD_LABEL),
+  donationTarget: Number(process.env.NEXT_PUBLIC_DONATION_TARGET),
+  currency: String(process.env.NEXT_PUBLIC_CURRENCY),
 };
 
 export default appConfig;

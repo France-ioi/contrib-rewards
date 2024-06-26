@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Navbar from "@/app/ui/navbar";
 import UserMenu from "@/app/ui/user/user-menu";
+import HeaderStats from "@/app/ui/header-stats";
 
 export default function Header() {
   return (
@@ -8,7 +9,7 @@ export default function Header() {
       <div className="container mx-auto px-4 pt-8">
         <div className="flex">
           <div className="grow">
-            <div className="mb-2 md:mb-8">
+            <div className="mb-2 md:mb-4">
               <Image
                 src="/opentezos.svg"
                 alt="Open Tezos Logo"
@@ -28,9 +29,8 @@ export default function Header() {
           </div>
         </div>
       </div>
-      {/*<section>*/}
-      {/*  We have raised*/}
-      {/*</section>*/}
+
+      <HeaderStats/>
 
       <Navbar/>
     </header>

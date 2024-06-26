@@ -5,17 +5,13 @@ import CoinsIcon from '@/public/icons/coins.svg';
 import FilesIcon from '@/public/icons/files.svg';
 import GitlabIcon from '@/public/icons/gitlab.svg';
 import Image from "next/image";
-import type {Metadata} from "next";
 import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useState} from "react";
 import {UiButton} from "@/app/ui/button";
 import {MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {useSession} from "next-auth/react";
 import {signIn} from "next-auth/react";
-
-export const metadata: Metadata = {
-  title: "Contributions",
-};
+import config from "@/app/lib/config";
 
 interface ContributionProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -120,7 +116,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                     onClick={() => openGiveModal(option.amount)}
                   >
                     {option.amount ? <>
-                      {option.amount} ꜩ {option.lead ? 'to take the lead' : ''}
+                      {option.amount}{config.currency} {option.lead ? 'to take the lead' : ''}
                     </> : <>Give other amount</>}
                   </UiButton>
                 )}
@@ -140,7 +136,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
           </header>
           <div className="grow bg-container-grey rounded-lg p-4 flex items-center justify-center">
             <span className="text-5xl font-medium text-project-focus">
-              34 ꜩ
+              34{config.currency}
             </span>
           </div>
         </div>

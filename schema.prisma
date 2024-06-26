@@ -68,7 +68,7 @@ model VerificationToken {
 
 model Donation {
   id             String              @id @default(cuid())
-  donorId      String
+  donorId        String
   mergeRequestId String
   review         String?             @db.Text
   createdAt      DateTime            @default(now())

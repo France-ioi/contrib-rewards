@@ -55,4 +55,10 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
       },
     }
   ],
+
+  callbacks: {
+    session({session, user}) {
+      return session;
+    },
+  }
 });

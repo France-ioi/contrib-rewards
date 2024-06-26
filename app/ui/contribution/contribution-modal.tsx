@@ -3,6 +3,8 @@ import {DonationInput, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation} from "@/app/lib/data/donations";
 import {useState} from "react";
+import {inter} from "@/app/ui/fonts";
+import config from "@/app/lib/config";
 
 interface ContributionModalProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -45,8 +47,9 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
               <h2 className="text-2xl md:text-4xl text-project-focus">
                 You are on track to support this merge with
               </h2>
-              <p className="font-bold text-project-focus text-6xl md:text-9xl text-center mt-6">
-                {amount} ꜩ
+              <p
+                className={`font-bold text-project-focus text-6xl md:text-9xl text-center mt-6 ${inter.className}`}>
+                {amount}<span className="text-7xl">{config.currency}</span>
               </p>
               <div className="flex flex-col md:flex-row mt-6 gap-2">
                 <UiButton
@@ -59,12 +62,13 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
                   color="lead"
                   className="flex-grow"
                 >
-                  18ꜩ to take the lead
+                  18{config.currency} to take the lead
                 </UiButton>
               </div>
 
               {splitNeeded && <>
-                <p className="text-xl md:text-3xl mt-10">How would you like to divide your donation between the authors?</p>
+                <p className="text-xl md:text-3xl mt-10">How would you like to divide your donation between the
+                  authors?</p>
 
                 <p>split</p>
 
@@ -74,7 +78,8 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
               </>}
 
               <p className="text-light mt-6">
-                You are about to transfer a total of {amount}ꜩ to the merge author{splitNeeded ? 's' : ''}, as shown above.
+                You are about to transfer a total of {amount}{config.currency} to the merge author{splitNeeded ? 's' : ''}, as shown
+                above.
               </p>
 
               <div className="text-center mt-2">

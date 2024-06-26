@@ -12,6 +12,7 @@ const config: Config = {
     extend: {
       boxShadow: {
         card: '0px 7px 10px 0px #0000001A',
+        progress: '0px 14px 20px 0px #0000001A',
       },
     },
     colors: {
@@ -23,6 +24,7 @@ const config: Config = {
       'container-grey': '#F2F2F2', // Surfaces/container-2
       'project-focus': '#0A0B0D', // focus
       'light-grey': '#0000001A',
+      transparent: 'transparent',
     },
   },
   darkMode: "class",
