@@ -132,7 +132,7 @@ export default function Donation({donation}: DonationProps) {
             {donation.createdAt.toLocaleDateString()} - Your review
           </div>
 
-          <div className="text-project-focus text-3xl mt-6">
+          <div className="text-project-focus text-3xl mt-6 break-words">
             “{donation.review}”
           </div>
 

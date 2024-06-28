@@ -21,7 +21,7 @@ export default function ShareReview({donation, review}: {donation: DonationFull,
 
       <div className="mt-4 relative">
         <div
-          className="rounded-lg text-light w-full p-4 h-[100px] bg-container-grey"
+          className="rounded-lg text-light w-full p-4 h-[100px] bg-container-grey break-words"
         >
           {review}
         </div>
