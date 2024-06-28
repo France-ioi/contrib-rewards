@@ -38,10 +38,10 @@ export default function Donation({donation}: DonationProps) {
       return;
     }
 
+    setModalOpen(true);
     setInitDonation(null);
     setInitReview(null);
     setGivenAmount(amount);
-    setModalOpen(true);
   };
 
   const openShareReview = () => {
@@ -50,22 +50,22 @@ export default function Donation({donation}: DonationProps) {
       return;
     }
 
+    setModalOpen(true);
     setInitDonation(donation);
     setInitReview(donation.review);
-    setModalOpen(true);
   };
 
   return (
     <div className="rounded-lg shadow-card w-full p-4 bg-white">
-      {modalOpen && <ContributionModal
+      <ContributionModal
         mergeRequest={donation.mergeRequest}
         amount={givenAmount}
-        open
+        open={modalOpen}
         onClose={() => setModalOpen(false)}
         onDonated={() => router.refresh()}
         initDonation={initDonation}
         initReview={initReview}
-      />}
+      />
 
       <div className="flex flex-col md:flex-row gap-6">
         <div className="">

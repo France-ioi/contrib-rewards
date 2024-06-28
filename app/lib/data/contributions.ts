@@ -67,8 +67,6 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthorsAndBa
     }
   }
 
-  console.log(backerDataByMergeRequestId);
-
   const mergeRequestsWithBackerData: MergeRequestWithAuthorsAndBackingData[] = [];
   for (let mergeRequest of mergeRequests) {
     let backersData: MergeRequestBackingData = {

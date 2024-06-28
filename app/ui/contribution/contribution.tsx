@@ -173,13 +173,13 @@ export default function Contribution({mergeRequest}: ContributionProps) {
               </div>
             </div>}
             <div className="text-center flex-grow">
-              {modalOpen && <ContributionModal
+              <ContributionModal
                 mergeRequest={mergeRequest}
                 amount={givenAmount}
-                open
+                open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 onDonated={() => router.refresh()}
-              />}
+              />
 
               <h5 className="text-light text-xl">Show your appreciation and give...</h5>
               <div className="md:flex md:flex-wrap gap-2 mt-4 md:mt-6 md:justify-center text-nowrap overflow-x-auto">

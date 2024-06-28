@@ -55,6 +55,11 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     splitBy(SplitMethod.Equal);
   }, [open, amount, mergeRequest.authors.length]);
 
+  useEffect(() => {
+    setDonation(initDonation);
+    setReview(initReview);
+  }, [initDonation, initReview, open]);
+
   const confirm = async () => {
     if (null === localAmount || 100 !== sumDonationSplits) {
       return;
@@ -140,8 +145,6 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
       }
       allocated += splits[authorIndex];
     }
-
-    console.log({splits});
 
     setAmountSplits(splits);
   }, [localAmount, donationSplits, mergeRequest, sumDonationSplits]);
