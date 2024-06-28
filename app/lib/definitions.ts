@@ -1,5 +1,6 @@
 // Typescript definitions
 import {Prisma} from '@prisma/client'
+import SortOrder = Prisma.SortOrder;
 
 export interface DonationInput {
   mergeRequestId: string,
@@ -27,7 +28,9 @@ export type MergeRequestWithAuthors = Prisma.MergeRequestGetPayload<{
       },
     },
   },
-}> & MergeRequestBackingData;
+}>;
+
+export type MergeRequestWithAuthorsAndBackingData = MergeRequestWithAuthors & MergeRequestBackingData;
 
 export interface MergeRequestBackingData {
   donorsCount: number,
@@ -78,3 +81,47 @@ export type DonationFull = Prisma.DonationGetPayload<{
     },
   },
 }>
+
+export const DonationFullIncludes = {
+  mergeRequest: {
+    include: {
+      authors: {
+        include: {
+          author: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        }
+      },
+      bestDonor: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+      donations: {
+        select: {
+          amount: true,
+          donorId: true,
+        },
+        orderBy: {
+          amount: SortOrder.desc,
+        },
+        take: 1,
+      },
+    },
+  },
+  splits: {
+    include: {
+      recipient: {
+        select: {
+          name: true,
+          image: true,
+        }
+      },
+    },
+  },
+};
+

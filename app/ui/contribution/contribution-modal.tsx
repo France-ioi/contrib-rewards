@@ -1,5 +1,5 @@
 import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
-import {DonationInput, MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {DonationFull, DonationInput, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation} from "@/app/lib/data/donations";
 import {useEffect, useState} from "react";
@@ -14,12 +14,17 @@ import FilesIcon from "@/public/icons/files.svg";
 import SectionsIcon from "@/public/icons/sections.svg";
 import Image from "next/image";
 import {MergeRequestAuthor} from "@prisma/client";
+import ThankYou from "@/app/ui/contribution/thankyou";
+import ShareReview from "@/app/ui/contribution/share-review";
 
 interface ContributionModalProps {
   mergeRequest: MergeRequestWithAuthors,
   amount: number|null,
   open: boolean,
   onClose: () => void,
+  onDonated: () => void,
+  initDonation?: DonationFull|null,
+  initReview?: string|null,
 }
 
 enum SplitMethod {
@@ -28,7 +33,7 @@ enum SplitMethod {
   Equal = 'equal',
 }
 
-export default function ContributionModal({mergeRequest, amount, open, onClose}: ContributionModalProps) {
+export default function ContributionModal({mergeRequest, amount, open, onClose, onDonated, initDonation, initReview}: ContributionModalProps) {
   const [loading, setLoading] = useState(false);
   const {data: session} = useSession();
   const user = session?.user;
@@ -41,6 +46,8 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
   const [changingAmount, setChangingAmount] = useState(false);
   const [donationSplits, setDonationSplits] = useState<{[authorIndex: string]: number}>({});
   const [amountSplits, setAmountSplits] = useState<{[authorIndex: string]: number}>({});
+  const [donation, setDonation] = useState<DonationFull|null|undefined>(initDonation);
+  const [review, setReview] = useState<string|null|undefined>(initReview);
 
   useEffect(() => {
     setChangingAmount(null === amount);
@@ -66,9 +73,9 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
       splits: remappedAuthorSplits,
     };
 
-    console.log('splits', remappedAuthorSplits);
-    const result = await createDonation(donationInput);
-    console.log('result', result);
+    const donation = await createDonation(donationInput);
+    setDonation(donation);
+    onDonated();
 
     setLoading(false);
   };
@@ -142,6 +149,11 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
   const splitNeeded = mergeRequest.authors.length > 1;
   const leadAmountButton = !!(leadAmount && (null === localAmount || leadAmount > localAmount));
 
+  const onSentReview = (review: string) => {
+    setReview(review);
+    onDonated();
+  }
+
   return (
     <Modal
       size="2xl"
@@ -155,184 +167,199 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
         {(onClose) => (
           <>
             <ModalBody>
-              <h2 className="text-2xl md:text-4xl text-project-focus mb-6">
-                You are on track to support this merge with
-              </h2>
-
-              {!changingAmount ?
-                <div
-                  className={`font-bold text-project-focus text-6xl md:text-9xl mb-6 text-center ${inter.className}`}>
-                  {localAmount}<span className="text-5xl md:text-7xl">{config.currency}</span>
-                </div>
-                :
-                <div className="flex justify-center">
-                  <div className="w-[350px] border-2 border-container-grey rounded-full mb-6 px-6 py-4 flex gap-4 items-center font-bold text-project-focus">
-                    <input
-                      type="number"
-                      className="w-full grow text-6xl outline-none"
-                      value={String(localAmount)}
-                      onChange={(e) => setLocalAmount(Math.max(0.01, Number(e.target.value)))}
-                      onBlur={() => setChangingAmount(false)}
+              {donation ?
+                (review ?
+                    <ShareReview
+                      donation={donation}
+                      review={review}
                     />
-                    <div className="text-5xl">{config.currency}</div>
-                  </div>
-                </div>
-              }
+                    :
+                    <ThankYou
+                      donation={donation}
+                      onSentReview={onSentReview}
+                    />
+                )
+                :
+                <>
+                  <h2 className="text-2xl md:text-4xl text-project-focus mb-6">
+                    You are on track to support this merge with
+                  </h2>
 
-              <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
-                {!changingAmount && <UiButton
-                  color="outlined"
-                  className={`flex-grow ${!leadAmountButton ? 'max-w-[200px]' : ''}`}
-                  onClick={() => setChangingAmount(true)}
-                >
-                  Change amount
-                </UiButton>}
-                {leadAmountButton && <UiButton
-                  color="outlined"
-                  className="flex-grow max-w-[200px]"
-                  onClick={takeLeadAmount}
-                >
-                  {leadAmount}{config.currency} to take the lead
-                </UiButton>}
-              </div>
-
-              {splitNeeded && <>
-                <p className="text-xl md:text-3xl mt-10">How would you like to divide your donation between the
-                  authors?</p>
-
-                <div className="flex flex-col gap-6 mt-6">
-                  {mergeRequest.authors.map((author, authorIndex) =>
-                    <div key={author.id}>
-                      <div className="flex gap-3 items-center">
-                        <UserAvatar user={author.author} size={40}/>
-                        <div>
-                          <div className="font-bold text-xl">
-                            {author.author.name}
-                          </div>
-                          <div className="flex gap-3">
-                            <div className="flex gap-1.5">
-                              <Image
-                                width={16}
-                                height={16}
-                                src={StatsPlusIcon}
-                                alt="Lines added"
-                              />
-                              <div className="text-[#00CB39]">
-                                {author.linesAdded}
-                              </div>
-                            </div>
-                            <div className="flex gap-1.5">
-                              <Image
-                                width={16}
-                                height={16}
-                                src={StatsMinusIcon}
-                                alt="Lines removed"
-                              />
-                              <div className="text-[#FF120F]">
-                                {author.linesRemoved}
-                              </div>
-                            </div>
-                            <div className="flex gap-1.5">
-                              <Image
-                                width={16}
-                                height={16}
-                                src={FilesIcon}
-                                alt="Files changed"
-                              />
-                              <div>
-                                {author.filesChanged}
-                              </div>
-                            </div>
-                            <div className="flex gap-1.5">
-                              <Image
-                                width={16}
-                                height={16}
-                                src={SectionsIcon}
-                                alt="Sections changed"
-                              />
-                              <div>
-                                {author.sectionsChanged}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="w-full flex gap-2 h-[40px] mt-3">
-                        <div
-                          className="rounded-full border border-light-grey flex items-center justify-center text-light font-medium w-[40px] cursor-pointer select-none"
-                          onClick={() => splitChange(authorIndex, -1)}
-                        >
-                          -
-                        </div>
-                        <div className="grow h-full rounded-full bg-[#0000001A] shadow-progress-split">
-                          <div className="rounded-full h-full bg-[#0F61FF] text-white font-bold flex items-center px-4" style={{width: `${12 + Math.round(donationSplits[authorIndex] * 0.88)}%`}}>
-                            {donationSplits[authorIndex]}%
-                          </div>
-                        </div>
-                        <div
-                          className="rounded-full border border-light-grey flex items-center justify-center text-light font-medium w-[40px] cursor-pointer select-none"
-                          onClick={() => splitChange(authorIndex, 1)}
-                        >
-                          +
-                        </div>
-                        {null !== localAmount && <div className="flex items-center justify-center font-bold min-w-[50px]">
-                          {amountSplits[authorIndex]}{config.currency}
-                        </div>}
+                  {!changingAmount ?
+                    <div
+                      className={`font-bold text-project-focus text-6xl md:text-9xl mb-6 text-center ${inter.className}`}>
+                      {localAmount}<span className="text-5xl md:text-7xl">{config.currency}</span>
+                    </div>
+                    :
+                    <div className="flex justify-center">
+                      <div className="w-[350px] border-2 border-container-grey rounded-full mb-6 px-6 py-4 flex gap-4 items-center font-bold text-project-focus">
+                        <input
+                          type="number"
+                          className="w-full grow text-6xl outline-none"
+                          value={String(localAmount)}
+                          onChange={(e) => setLocalAmount(Math.max(0.01, Number(e.target.value)))}
+                        />
+                        <div className="text-5xl">{config.currency}</div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  }
 
-                <p className="text-xl md:text-3xl mt-10">Not sure how to split?</p>
+                  <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
+                    {!changingAmount && <UiButton
+                      color="outlined"
+                      className={`flex-grow ${!leadAmountButton ? 'max-w-[200px]' : ''}`}
+                      onClick={() => setChangingAmount(true)}
+                    >
+                      Change amount
+                    </UiButton>}
+                    {leadAmountButton && <UiButton
+                      color="outlined"
+                      className="flex-grow max-w-[200px]"
+                      onClick={takeLeadAmount}
+                    >
+                      {leadAmount}{config.currency} to take the lead
+                    </UiButton>}
+                  </div>
 
-                <div className="text-nowrap overflow-x-auto min-h-[42px]">
-                  <div className="flex gap-2">
+                  {splitNeeded && <>
+                    <p className="text-xl md:text-3xl mt-10">How would you like to divide your donation between the
+                      authors?</p>
+
+                    <div className="flex flex-col gap-6 mt-6">
+                      {mergeRequest.authors.map((author, authorIndex) =>
+                        <div key={author.id}>
+                          <div className="flex gap-3 items-center">
+                            <UserAvatar user={author.author} size={40}/>
+                            <div>
+                              <div className="font-bold text-xl">
+                                {author.author.name}
+                              </div>
+                              <div className="flex gap-3">
+                                <div className="flex gap-1.5">
+                                  <Image
+                                    width={16}
+                                    height={16}
+                                    src={StatsPlusIcon}
+                                    alt="Lines added"
+                                  />
+                                  <div className="text-[#00CB39]">
+                                    {author.linesAdded}
+                                  </div>
+                                </div>
+                                <div className="flex gap-1.5">
+                                  <Image
+                                    width={16}
+                                    height={16}
+                                    src={StatsMinusIcon}
+                                    alt="Lines removed"
+                                  />
+                                  <div className="text-[#FF120F]">
+                                    {author.linesRemoved}
+                                  </div>
+                                </div>
+                                <div className="flex gap-1.5">
+                                  <Image
+                                    width={16}
+                                    height={16}
+                                    src={FilesIcon}
+                                    alt="Files changed"
+                                  />
+                                  <div>
+                                    {author.filesChanged}
+                                  </div>
+                                </div>
+                                <div className="flex gap-1.5">
+                                  <Image
+                                    width={16}
+                                    height={16}
+                                    src={SectionsIcon}
+                                    alt="Sections changed"
+                                  />
+                                  <div>
+                                    {author.sectionsChanged}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="w-full flex gap-2 h-[40px] mt-3">
+                            <div
+                              className="rounded-full border border-light-grey flex items-center justify-center text-light font-medium w-[40px] cursor-pointer select-none"
+                              onClick={() => splitChange(authorIndex, -1)}
+                            >
+                              -
+                            </div>
+                            <div className="grow h-full rounded-full bg-[#0000001A] shadow-progress-split">
+                              <div className="rounded-full h-full bg-[#0F61FF] text-white font-bold flex items-center px-4" style={{width: `${12 + Math.round(donationSplits[authorIndex] * 0.88)}%`}}>
+                                {donationSplits[authorIndex]}%
+                              </div>
+                            </div>
+                            <div
+                              className="rounded-full border border-light-grey flex items-center justify-center text-light font-medium w-[40px] cursor-pointer select-none"
+                              onClick={() => splitChange(authorIndex, 1)}
+                            >
+                              +
+                            </div>
+                            {null !== localAmount && <div className="flex items-center justify-center font-bold min-w-[50px]">
+                              {amountSplits[authorIndex]}{config.currency}
+                            </div>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-xl md:text-3xl mt-10">Not sure how to split?</p>
+
+                    <div className="text-nowrap overflow-x-auto min-h-[42px]">
+                      <div className="flex gap-2">
+                        <UiButton
+                          color="outlined"
+                          onPress={() => splitBy(SplitMethod.LinesAdded)}
+                        >
+                          Split by lines added
+                        </UiButton>
+                        <UiButton
+                          color="outlined"
+                          onPress={() => splitBy(SplitMethod.LinesRemoved)}
+                        >
+                          Split by lines removed
+                        </UiButton>
+                        <UiButton
+                          color="outlined"
+                          onPress={() => splitBy(SplitMethod.Equal)}
+                        >
+                          Equal split
+                        </UiButton>
+                      </div>
+                    </div>
+                  </>}
+
+                  {100 === sumDonationSplits ?
+                    <p className="text-light mt-6">
+                      You are about to transfer a total of {localAmount}{config.currency} to the merge
+                      author{splitNeeded ? 's' : ''}, as shown
+                      above.
+                    </p>
+                    :
+                    <p className="text-[#FF120F] mt-6">
+                      You must split 100% of the total amount. You have currently allocated {sumDonationSplits}%.
+                    </p>
+                  }
+
+                  <div className="text-center mt-2">
                     <UiButton
-                      color="outlined"
-                      onPress={() => splitBy(SplitMethod.LinesAdded)}
+                      color="lead"
+                      className="w-full md:w-min px-8"
+                      onPress={confirm}
+                      isLoading={loading}
+                      isDisabled={100 !== sumDonationSplits || null === localAmount}
                     >
-                      Split by lines added
-                    </UiButton>
-                    <UiButton
-                      color="outlined"
-                      onPress={() => splitBy(SplitMethod.LinesRemoved)}
-                    >
-                      Split by lines removed
-                    </UiButton>
-                    <UiButton
-                      color="outlined"
-                      onPress={() => splitBy(SplitMethod.Equal)}
-                    >
-                      Equal split
+                      Confirm and send
                     </UiButton>
                   </div>
-                </div>
-              </>}
-
-              {100 === sumDonationSplits ?
-                <p className="text-light mt-6">
-                  You are about to transfer a total of {localAmount}{config.currency} to the merge
-                  author{splitNeeded ? 's' : ''}, as shown
-                  above.
-                </p>
-                :
-                <p className="text-[#FF120F] mt-6">
-                  You must split 100% of the total amount. You have currently allocated {sumDonationSplits}%.
-                </p>
+                </>
               }
-
-              <div className="text-center mt-2">
-                <UiButton
-                  color="lead"
-                  className="w-full md:w-min px-8"
-                  onPress={confirm}
-                  isLoading={loading}
-                  isDisabled={100 !== sumDonationSplits || null === localAmount}
-                >
-                  Confirm and send
-                </UiButton>
-              </div>
             </ModalBody>
           </>
         )}

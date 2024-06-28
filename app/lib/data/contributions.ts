@@ -1,9 +1,13 @@
 import {GitlabFetcher} from "@/app/lib/data/repository/gitlab_fetcher";
 import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {Prisma} from "@prisma/client";
-import {MergeRequestBackingData, MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {
+  MergeRequestBackingData,
+  MergeRequestWithAuthors,
+  MergeRequestWithAuthorsAndBackingData
+} from "@/app/lib/definitions";
 
-export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
+export async function fetchMergeRequests(): Promise<MergeRequestWithAuthorsAndBackingData[]> {
   const gitlabFetcher = new GitlabFetcher();
 
   try {
@@ -65,7 +69,7 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
 
   console.log(backerDataByMergeRequestId);
 
-  const mergeRequestsWithBackerData: MergeRequestWithAuthors[] = [];
+  const mergeRequestsWithBackerData: MergeRequestWithAuthorsAndBackingData[] = [];
   for (let mergeRequest of mergeRequests) {
     let backersData: MergeRequestBackingData = {
       donorsCount: 0,

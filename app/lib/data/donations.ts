@@ -1,11 +1,12 @@
 'use server';
 
 import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
-import {DonationFull, DonationInput} from "@/app/lib/definitions";
+import {DonationFull, DonationFullIncludes, DonationInput} from "@/app/lib/definitions";
 import {auth} from "@/app/lib/auth";
 import {Donation, User} from "@prisma/client";
 import {Prisma} from "@prisma/client";
 import {getCurrentPeriodData} from "@/app/lib/helpers";
+import SortOrder = Prisma.SortOrder;
 
 export async function createDonation(donationInput: DonationInput) {
   const session = await auth();
@@ -61,6 +62,7 @@ export async function createDonation(donationInput: DonationInput) {
         create: splitsToCreate,
       },
     },
+    include: DonationFullIncludes,
   });
 
   await recomputeMergeRequestBestDonation(donationInput.mergeRequestId);
@@ -125,50 +127,9 @@ export async function fetchDonations(user: User): Promise<DonationFull[]> {
     where: {
       donorId: user.id,
     },
-    include: {
-      mergeRequest: {
-        include: {
-          authors: {
-            include: {
-              author: {
-                select: {
-                  name: true,
-                  image: true,
-                },
-              },
-            }
-          },
-          bestDonor: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-          donations: {
-            select: {
-              amount: true,
-              donorId: true,
-            },
-            orderBy: {
-              amount: 'desc',
-            },
-            take: 1,
-          },
-        },
-      },
-      splits: {
-        include: {
-          recipient: {
-            select: {
-              name: true,
-              image: true,
-            }
-          },
-        },
-      },
-    },
+    include: DonationFullIncludes,
     orderBy: {
-      createdAt: 'desc',
+      createdAt: SortOrder.desc,
     },
   });
 
@@ -244,4 +205,37 @@ export async function getUserDonationStats(user: User) {
     firstDonationDate: firstDonationDate._min.createdAt,
     currentTopDonationSpots: topDonationsCount._count.bestDonorId,
   };
+}
+
+export async function submitReview(donationId: string, review: string) {
+  const session = await auth();
+  const user = session?.user;
+  if (!user) {
+    throw new Error('You should be logged in');
+  }
+
+  const donation = await prisma.donation.findUnique({
+    where: {
+      id: donationId,
+    },
+  });
+
+  if (null === donation) {
+    throw new Error("Donation could not be found: " + donationId);
+  }
+
+  if (user.id !== donation.donorId) {
+    throw new Error("You are not the author of this donation");
+  }
+
+  await prisma.donation.update({
+    where: {
+      id: donationId,
+    },
+    data: {
+      review,
+    }
+  });
+
+  await recomputeMergeRequestBestDonation(donation.mergeRequestId);
 }

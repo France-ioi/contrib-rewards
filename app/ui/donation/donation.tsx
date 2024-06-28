@@ -12,6 +12,7 @@ import {getLeadAmountFromCurrentAmount} from "@/app/lib/helpers";
 import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
 import UserAvatar from "@/app/ui/user-avatar";
+import {useRouter} from "next/navigation";
 
 interface DonationProps {
   donation: DonationFull,
@@ -19,19 +20,14 @@ interface DonationProps {
 
 export default function Donation({donation}: DonationProps) {
   const {data: session} = useSession();
+  const router = useRouter();
 
-  const giveOptions = [
-    {amount: 1},
-    {amount: 10},
-    {amount: 18, lead: true},
-    {amount: 1000},
-    {amount: null},
-  ];
+  const [initDonation, setInitDonation] = useState<DonationFull|null>(null);
+  const [initReview, setInitReview] = useState<string|null>(null);
 
   const bestDonation = donation.mergeRequest.donations.length ? donation.mergeRequest.donations[0] : null;
   const leadAmount = bestDonation ? getLeadAmountFromCurrentAmount(bestDonation.amount as unknown as number) : null;
   const isBestDonation = null !== bestDonation && bestDonation.donorId === session?.user?.id;
-  console.log({bestDonation, session})
 
   const [modalOpen, setModalOpen] = useState(false);
   const [givenAmount, setGivenAmount] = useState<number|null>(null);
@@ -42,7 +38,20 @@ export default function Donation({donation}: DonationProps) {
       return;
     }
 
+    setInitDonation(null);
+    setInitReview(null);
     setGivenAmount(amount);
+    setModalOpen(true);
+  };
+
+  const openShareReview = () => {
+    if (!session?.user) {
+      signIn('france-ioi');
+      return;
+    }
+
+    setInitDonation(donation);
+    setInitReview(donation.review);
     setModalOpen(true);
   };
 
@@ -53,6 +62,9 @@ export default function Donation({donation}: DonationProps) {
         amount={givenAmount}
         open
         onClose={() => setModalOpen(false)}
+        onDonated={() => router.refresh()}
+        initDonation={initDonation}
+        initReview={initReview}
       />}
 
       <div className="flex flex-col md:flex-row gap-6">
@@ -63,7 +75,7 @@ export default function Donation({donation}: DonationProps) {
             </h3>
           </header>
           <div className="flex flex-col md:flex-row mt-6 gap-6">
-            <div className="bg-container-grey rounded-lg p-4 grow">
+            <div className="bg-container-grey rounded-lg p-4 grow max-w-[500px]">
               <p className="text-xl">
                 You gave to this merge
               </p>
@@ -107,7 +119,7 @@ export default function Donation({donation}: DonationProps) {
           </div>
         </div>
 
-        <div className={`grow bg-container-grey rounded-lg p-4 ${donation.splits.length <= 1 ? 'basis-3/4' : ''}`}>
+        {donation.review && <div className={`grow bg-container-grey rounded-lg p-4 ${donation.splits.length <= 1 ? 'basis-3/4' : ''}`}>
           <Image
             width={60}
             height={60}
@@ -127,6 +139,7 @@ export default function Donation({donation}: DonationProps) {
           <div className="mt-6 flex gap-2 flex-col md:flex-row">
             <UiButton
               color="outlined"
+              onPress={openShareReview}
             >
               Share review
             </UiButton>
@@ -138,7 +151,7 @@ export default function Donation({donation}: DonationProps) {
               Give {leadAmount!}{config.currency} to take the lead
             </UiButton>}
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   );

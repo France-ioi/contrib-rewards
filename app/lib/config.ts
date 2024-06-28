@@ -9,6 +9,7 @@ interface Config {
   donationPeriodLabel: string,
   donationTarget: number,
   currency: string,
+  webServerUrl: string,
 }
 
 const appConfig: Config = {
@@ -22,6 +23,7 @@ const appConfig: Config = {
   donationPeriodLabel: String(process.env.DONATION_PERIOD_LABEL),
   donationTarget: Number(process.env.NEXT_PUBLIC_DONATION_TARGET),
   currency: String(process.env.NEXT_PUBLIC_CURRENCY),
+  webServerUrl: String(process.env.NEXT_PUBLIC_WEB_SERVER_URL),
 };
 
 export default appConfig;

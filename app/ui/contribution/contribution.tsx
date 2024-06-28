@@ -9,21 +9,24 @@ import Image from "next/image";
 import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useState} from "react";
 import {UiButton} from "@/app/ui/button";
-import {MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {MergeRequestWithAuthorsAndBackingData} from "@/app/lib/definitions";
 import {useSession} from "next-auth/react";
 import {signIn} from "next-auth/react";
 import config from "@/app/lib/config";
 import {inter} from "@/app/ui/fonts";
 import UserAvatar from "@/app/ui/user-avatar";
 import {getLeadAmountFromCurrentAmount} from "@/app/lib/helpers";
+import {useRouter} from "next/navigation";
 
 interface ContributionProps {
-  mergeRequest: MergeRequestWithAuthors,
+  mergeRequest: MergeRequestWithAuthorsAndBackingData,
 }
 
 export default function Contribution({mergeRequest}: ContributionProps) {
   const {data: session} = useSession();
   const user = session?.user;
+
+  const router = useRouter();
 
   const defaultAmounts = [1, 10, 1000];
   let leadAmount = null;
@@ -117,7 +120,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                     rel="nofollow noopener"
                     className="flex gap-1 items-center px-3 h-[40px] border-t border-t-light-grey md:border-t-0 w-full justify-center"
                   >
-                    <span className="text-light">View at Gitlab</span>
+                    <span className="text-light text-nowrap">View at Gitlab</span>
                     <Image
                       width={16}
                       height={16}
@@ -175,6 +178,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                 amount={givenAmount}
                 open
                 onClose={() => setModalOpen(false)}
+                onDonated={() => router.refresh()}
               />}
 
               <h5 className="text-light text-xl">Show your appreciation and give...</h5>
@@ -205,7 +209,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
             />
             <span className="text-light">The Backing</span>
           </header>
-          <div className="grow bg-container-grey rounded-lg py-4 px-6 flex items-center justify-center">
+          <div className="grow bg-container-grey rounded-lg py-4 px-5 flex items-center justify-center">
             <span className="text-5xl font-medium text-project-focus">
               {mergeRequest.donationsSum}{config.currency}
             </span>
