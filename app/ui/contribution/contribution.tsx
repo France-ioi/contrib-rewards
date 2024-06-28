@@ -91,8 +91,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
             <div className="bg-container-grey rounded-lg p-4 flex items-center justify-center">
               <div>
                 <div className="text-light text-center">
-                  {mergeRequest.authors.length} author{mergeRequest.authors.length > 1 ? 's' : ''}, 3 backers
-                  {/*TODO*/}
+                  {mergeRequest.authors.length} author{mergeRequest.authors.length > 1 ? 's' : ''}, {mergeRequest.donorsCount} backer{mergeRequest.donorsCount > 1 ? 's' : ''}
                 </div>
                 <div className="text-action text-center">
                   {mergeRequest.sectionsChanged} section{mergeRequest.sectionsChanged > 1 ? 's' : ''} edited
@@ -206,9 +205,9 @@ export default function Contribution({mergeRequest}: ContributionProps) {
             />
             <span className="text-light">The Backing</span>
           </header>
-          <div className="grow bg-container-grey rounded-lg p-4 flex items-center justify-center">
+          <div className="grow bg-container-grey rounded-lg py-4 px-6 flex items-center justify-center">
             <span className="text-5xl font-medium text-project-focus">
-              34{config.currency}
+              {mergeRequest.donationsSum}{config.currency}
             </span>
           </div>
         </div>

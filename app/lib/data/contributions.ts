@@ -1,7 +1,7 @@
 import {GitlabFetcher} from "@/app/lib/data/repository/gitlab_fetcher";
 import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {Prisma} from "@prisma/client";
-import {MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {MergeRequestBackingData, MergeRequestWithAuthors} from "@/app/lib/definitions";
 
 export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
   const gitlabFetcher = new GitlabFetcher();
@@ -26,7 +26,6 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
   }
 
   // TODO: limit to current period
-  // TODO: add backers count and total donation amount
   const mergeRequests = await prisma.mergeRequest.findMany({
     include: {
       authors: {
@@ -48,9 +47,43 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
     },
   });
 
-  transformDecimalsToNumbers(mergeRequests);
+  const mergeRequestIds = mergeRequests.map(mergeRequest => mergeRequest.id);
 
-  return mergeRequests;
+  const backersData = await prisma.$queryRaw
+      `SELECT mergeRequestId, SUM(amount) AS sum, COUNT(DISTINCT donorId) AS count
+       FROM \`Donation\`
+       WHERE mergeRequestId IN (${Prisma.join(mergeRequestIds)})
+       GROUP BY mergeRequestId` as {mergeRequestId: string, sum: number, count: number}[];
+
+  const backerDataByMergeRequestId: {[mergeRequestId: string]: MergeRequestBackingData} = {};
+  for (let backerData of backersData) {
+    backerDataByMergeRequestId[backerData.mergeRequestId] = {
+      donationsSum: Number(backerData.sum),
+      donorsCount: Number(backerData.count),
+    }
+  }
+
+  console.log(backerDataByMergeRequestId);
+
+  const mergeRequestsWithBackerData: MergeRequestWithAuthors[] = [];
+  for (let mergeRequest of mergeRequests) {
+    let backersData: MergeRequestBackingData = {
+      donorsCount: 0,
+      donationsSum: 0,
+    };
+    if (mergeRequest.id in backerDataByMergeRequestId) {
+      backersData = backerDataByMergeRequestId[mergeRequest.id];
+    }
+
+    mergeRequestsWithBackerData.push({
+      ...mergeRequest,
+      ...backersData,
+    });
+  }
+
+  transformDecimalsToNumbers(mergeRequestsWithBackerData);
+
+  return mergeRequestsWithBackerData;
 }
 
 async function syncMergeRequestsWithDatabase(mergeRequests: Prisma.MergeRequestCreateInput[]) {

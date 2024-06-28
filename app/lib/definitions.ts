@@ -27,7 +27,12 @@ export type MergeRequestWithAuthors = Prisma.MergeRequestGetPayload<{
       },
     },
   },
-}>
+}> & MergeRequestBackingData;
+
+export interface MergeRequestBackingData {
+  donorsCount: number,
+  donationsSum: number
+}
 
 export type DonationFull = Prisma.DonationGetPayload<{
   include: {
