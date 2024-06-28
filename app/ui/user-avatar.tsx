@@ -21,7 +21,7 @@ export default function UserAvatar({user, size}: UserAvatarProps) {
         {/*    alt="Top donor"*/}
         {/*  />*/}
         {/*  :*/}
-          <div className="text-white text-4xl font-medium">
+          <div className="text-white text-3xl font-medium select-none">
             {user.name!.substring(0, 1).toLocaleUpperCase()}
           </div>
         {/*}*/}

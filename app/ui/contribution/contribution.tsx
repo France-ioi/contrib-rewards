@@ -26,13 +26,16 @@ export default function Contribution({mergeRequest}: ContributionProps) {
   const user = session?.user;
 
   const defaultAmounts = [1, 10, 1000];
+  let leadAmount = null;
 
   const giveOptions: {amount: number|null, lead?: boolean}[] = [
     {amount: null},
   ];
   if (mergeRequest.bestDonorId !== user?.id) {
+    leadAmount = getLeadAmountFromCurrentAmount(Number(mergeRequest.bestDonorAmount ?? 0));
+
     giveOptions.push({
-      amount: getLeadAmountFromCurrentAmount(Number(mergeRequest.bestDonorAmount ?? 0)),
+      amount: leadAmount,
       lead: true,
     });
   }
@@ -168,12 +171,12 @@ export default function Contribution({mergeRequest}: ContributionProps) {
               </div>
             </div>}
             <div className="text-center flex-grow">
-              <ContributionModal
+              {modalOpen && <ContributionModal
                 mergeRequest={mergeRequest}
                 amount={givenAmount}
-                open={modalOpen}
+                open
                 onClose={() => setModalOpen(false)}
-              />
+              />}
 
               <h5 className="text-light text-xl">Show your appreciation and give...</h5>
               <div className="md:flex md:flex-wrap gap-2 mt-4 md:mt-6 md:justify-center text-nowrap overflow-x-auto">

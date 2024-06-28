@@ -13,6 +13,7 @@ const config: Config = {
       boxShadow: {
         card: '0px 7px 10px 0px #0000001A',
         progress: '0px 14px 20px 0px #0000001A',
+        'progress-split': '0px 1px 0px 0px #0000001A inset',
       },
     },
     colors: {

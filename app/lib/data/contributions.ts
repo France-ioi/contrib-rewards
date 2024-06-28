@@ -27,9 +27,18 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthors[]> {
 
   // TODO: limit to current period
   // TODO: add backers count and total donation amount
-  const mergeRequests = prisma.mergeRequest.findMany({
+  const mergeRequests = await prisma.mergeRequest.findMany({
     include: {
-      authors: true,
+      authors: {
+        include: {
+          author: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        }
+      },
       bestDonor: {
         select: {
           name: true,

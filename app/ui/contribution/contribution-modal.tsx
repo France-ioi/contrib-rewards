@@ -2,9 +2,18 @@ import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
 import {DonationInput, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation} from "@/app/lib/data/donations";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
+import {useSession} from "next-auth/react";
+import {getLeadAmountFromCurrentAmount} from "@/app/lib/helpers";
+import UserAvatar from "@/app/ui/user-avatar";
+import StatsPlusIcon from "@/public/icons/stats-plus.svg";
+import StatsMinusIcon from "@/public/icons/stats-minus.svg";
+import FilesIcon from "@/public/icons/files.svg";
+import SectionsIcon from "@/public/icons/sections.svg";
+import Image from "next/image";
+import {MergeRequestAuthor} from "@prisma/client";
 
 interface ContributionModalProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -13,23 +22,125 @@ interface ContributionModalProps {
   onClose: () => void,
 }
 
+enum SplitMethod {
+  LinesAdded = 'lines_added',
+  LinesRemoved = 'lines_removed',
+  Equal = 'equal',
+}
+
 export default function ContributionModal({mergeRequest, amount, open, onClose}: ContributionModalProps) {
   const [loading, setLoading] = useState(false);
+  const {data: session} = useSession();
+  const user = session?.user;
+  let leadAmount = null;
+  if (mergeRequest.bestDonorId !== user?.id) {
+    leadAmount = getLeadAmountFromCurrentAmount(Number(mergeRequest.bestDonorAmount ?? 0));
+  }
+
+  const [localAmount, setLocalAmount] = useState<number|null>(amount);
+  const [changingAmount, setChangingAmount] = useState(false);
+  const [donationSplits, setDonationSplits] = useState<{[authorIndex: string]: number}>({});
+  const [amountSplits, setAmountSplits] = useState<{[authorIndex: string]: number}>({});
+
+  useEffect(() => {
+    setChangingAmount(null === amount);
+    setLocalAmount(amount);
+    splitBy(SplitMethod.Equal);
+  }, [open, amount, mergeRequest.authors.length]);
 
   const confirm = async () => {
+    if (null === localAmount || 100 !== sumDonationSplits) {
+      return;
+    }
+
     setLoading(true);
+
+    const remappedAuthorSplits: {[authorId: string]: number} = {};
+    for (let i = 0; i < mergeRequest.authors.length; i++) {
+      remappedAuthorSplits[mergeRequest.authors[i].id] = amountSplits[i];
+    }
+
     const donationInput: DonationInput = {
       mergeRequestId: mergeRequest.id,
-      amount: Number(amount),
-      splits: [],
+      amount: localAmount,
+      splits: remappedAuthorSplits,
     };
+
+    console.log('splits', remappedAuthorSplits);
     const result = await createDonation(donationInput);
     console.log('result', result);
 
     setLoading(false);
   };
 
+  const takeLeadAmount = () => {
+    setLocalAmount(leadAmount);
+    setChangingAmount(false);
+  };
+
+  const splitChange = (authorIndex: number, increment: number) => {
+    const newDonationSplits = {
+      ...donationSplits,
+    };
+
+    newDonationSplits[authorIndex] = Math.max(0, Math.min(100, newDonationSplits[authorIndex] + increment));
+
+    setDonationSplits(newDonationSplits);
+  };
+
+  const splitBy = (splitMethod: SplitMethod) => {
+    const methods: Record<SplitMethod, ((author: MergeRequestAuthor) => number)> = {
+      [SplitMethod.LinesAdded]: author => author.linesAdded,
+      [SplitMethod.LinesRemoved]: author => author.linesRemoved,
+      [SplitMethod.Equal]: author => 1,
+    };
+
+    let sumValues = 0;
+    for (let authorIndex = 0; authorIndex < mergeRequest.authors.length; authorIndex++) {
+      sumValues += methods[splitMethod](mergeRequest.authors[authorIndex]);
+    }
+
+    const newDonationSplits: {[key: string]: number} = {};
+    let allocated = 0;
+    for (let authorIndex = 0; authorIndex < mergeRequest.authors.length; authorIndex++) {
+      if (authorIndex === mergeRequest.authors.length - 1) {
+        newDonationSplits[authorIndex] = 100 - allocated;
+      } else {
+        const value = methods[splitMethod](mergeRequest.authors[authorIndex]);
+        newDonationSplits[authorIndex] = Math.round(value / sumValues * 100);
+      }
+      allocated += newDonationSplits[authorIndex];
+    }
+
+    setDonationSplits(newDonationSplits);
+  };
+
+  const sumDonationSplits = Object.values(donationSplits).reduce((a, next) => a + next, 0);
+
+  useEffect(() => {
+    const splits: {[authorIndex: string]: number} = {};
+    if (null === localAmount) {
+      setAmountSplits(splits);
+      return;
+    }
+
+    let allocated = 0;
+    for (let authorIndex = 0; authorIndex < mergeRequest.authors.length; authorIndex++) {
+      if (authorIndex === mergeRequest.authors.length - 1 && 100 === sumDonationSplits) {
+        splits[authorIndex] = Math.round((localAmount - allocated) * 100) / 100;
+      } else {
+        splits[authorIndex] = Math.round(donationSplits[authorIndex] * localAmount) / 100;
+      }
+      allocated += splits[authorIndex];
+    }
+
+    console.log({splits});
+
+    setAmountSplits(splits);
+  }, [localAmount, donationSplits, mergeRequest, sumDonationSplits]);
+
   const splitNeeded = mergeRequest.authors.length > 1;
+  const leadAmountButton = !!(leadAmount && (null === localAmount || leadAmount > localAmount));
 
   return (
     <Modal
@@ -44,50 +155,180 @@ export default function ContributionModal({mergeRequest, amount, open, onClose}:
         {(onClose) => (
           <>
             <ModalBody>
-              <h2 className="text-2xl md:text-4xl text-project-focus">
+              <h2 className="text-2xl md:text-4xl text-project-focus mb-6">
                 You are on track to support this merge with
               </h2>
-              <p
-                className={`font-bold text-project-focus text-6xl md:text-9xl text-center mt-6 ${inter.className}`}>
-                {amount}<span className="text-7xl">{config.currency}</span>
-              </p>
-              <div className="flex flex-col md:flex-row mt-6 gap-2">
-                <UiButton
+
+              {!changingAmount ?
+                <div
+                  className={`font-bold text-project-focus text-6xl md:text-9xl mb-6 text-center ${inter.className}`}>
+                  {localAmount}<span className="text-5xl md:text-7xl">{config.currency}</span>
+                </div>
+                :
+                <div className="flex justify-center">
+                  <div className="w-[350px] border-2 border-container-grey rounded-full mb-6 px-6 py-4 flex gap-4 items-center font-bold text-project-focus">
+                    <input
+                      type="number"
+                      className="w-full grow text-6xl outline-none"
+                      value={String(localAmount)}
+                      onChange={(e) => setLocalAmount(Math.max(0.01, Number(e.target.value)))}
+                      onBlur={() => setChangingAmount(false)}
+                    />
+                    <div className="text-5xl">{config.currency}</div>
+                  </div>
+                </div>
+              }
+
+              <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
+                {!changingAmount && <UiButton
                   color="outlined"
-                  className="flex-grow"
+                  className={`flex-grow ${!leadAmountButton ? 'max-w-[200px]' : ''}`}
+                  onClick={() => setChangingAmount(true)}
                 >
                   Change amount
-                </UiButton>
-                <UiButton
-                  color="lead"
-                  className="flex-grow"
+                </UiButton>}
+                {leadAmountButton && <UiButton
+                  color="outlined"
+                  className="flex-grow max-w-[200px]"
+                  onClick={takeLeadAmount}
                 >
-                  18{config.currency} to take the lead
-                </UiButton>
+                  {leadAmount}{config.currency} to take the lead
+                </UiButton>}
               </div>
 
               {splitNeeded && <>
                 <p className="text-xl md:text-3xl mt-10">How would you like to divide your donation between the
                   authors?</p>
 
-                <p>split</p>
+                <div className="flex flex-col gap-6 mt-6">
+                  {mergeRequest.authors.map((author, authorIndex) =>
+                    <div key={author.id}>
+                      <div className="flex gap-3 items-center">
+                        <UserAvatar user={author.author} size={40}/>
+                        <div>
+                          <div className="font-bold text-xl">
+                            {author.author.name}
+                          </div>
+                          <div className="flex gap-3">
+                            <div className="flex gap-1.5">
+                              <Image
+                                width={16}
+                                height={16}
+                                src={StatsPlusIcon}
+                                alt="Lines added"
+                              />
+                              <div className="text-[#00CB39]">
+                                {author.linesAdded}
+                              </div>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <Image
+                                width={16}
+                                height={16}
+                                src={StatsMinusIcon}
+                                alt="Lines removed"
+                              />
+                              <div className="text-[#FF120F]">
+                                {author.linesRemoved}
+                              </div>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <Image
+                                width={16}
+                                height={16}
+                                src={FilesIcon}
+                                alt="Files changed"
+                              />
+                              <div>
+                                {author.filesChanged}
+                              </div>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <Image
+                                width={16}
+                                height={16}
+                                src={SectionsIcon}
+                                alt="Sections changed"
+                              />
+                              <div>
+                                {author.sectionsChanged}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="w-full flex gap-2 h-[40px] mt-3">
+                        <div
+                          className="rounded-full border border-light-grey flex items-center justify-center text-light font-medium w-[40px] cursor-pointer select-none"
+                          onClick={() => splitChange(authorIndex, -1)}
+                        >
+                          -
+                        </div>
+                        <div className="grow h-full rounded-full bg-[#0000001A] shadow-progress-split">
+                          <div className="rounded-full h-full bg-[#0F61FF] text-white font-bold flex items-center px-4" style={{width: `${12 + Math.round(donationSplits[authorIndex] * 0.88)}%`}}>
+                            {donationSplits[authorIndex]}%
+                          </div>
+                        </div>
+                        <div
+                          className="rounded-full border border-light-grey flex items-center justify-center text-light font-medium w-[40px] cursor-pointer select-none"
+                          onClick={() => splitChange(authorIndex, 1)}
+                        >
+                          +
+                        </div>
+                        {null !== localAmount && <div className="flex items-center justify-center font-bold min-w-[50px]">
+                          {amountSplits[authorIndex]}{config.currency}
+                        </div>}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <p className="text-xl md:text-3xl mt-10">Not sure how to split?</p>
 
-                <p>split buttons</p>
+                <div className="text-nowrap overflow-x-auto min-h-[42px]">
+                  <div className="flex gap-2">
+                    <UiButton
+                      color="outlined"
+                      onPress={() => splitBy(SplitMethod.LinesAdded)}
+                    >
+                      Split by lines added
+                    </UiButton>
+                    <UiButton
+                      color="outlined"
+                      onPress={() => splitBy(SplitMethod.LinesRemoved)}
+                    >
+                      Split by lines removed
+                    </UiButton>
+                    <UiButton
+                      color="outlined"
+                      onPress={() => splitBy(SplitMethod.Equal)}
+                    >
+                      Equal split
+                    </UiButton>
+                  </div>
+                </div>
               </>}
 
-              <p className="text-light mt-6">
-                You are about to transfer a total of {amount}{config.currency} to the merge author{splitNeeded ? 's' : ''}, as shown
-                above.
-              </p>
+              {100 === sumDonationSplits ?
+                <p className="text-light mt-6">
+                  You are about to transfer a total of {localAmount}{config.currency} to the merge
+                  author{splitNeeded ? 's' : ''}, as shown
+                  above.
+                </p>
+                :
+                <p className="text-[#FF120F] mt-6">
+                  You must split 100% of the total amount. You have currently allocated {sumDonationSplits}%.
+                </p>
+              }
 
               <div className="text-center mt-2">
                 <UiButton
                   color="lead"
-                  className="w-full md:w-min"
+                  className="w-full md:w-min px-8"
                   onPress={confirm}
                   isLoading={loading}
+                  isDisabled={100 !== sumDonationSplits || null === localAmount}
                 >
                   Confirm and send
                 </UiButton>

@@ -59,7 +59,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
         query: `query getMergeRequests($fullPath: ID!) {
   project(fullPath: $fullPath) {
     id
-    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 3) {
+    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 20) {
       nodes {
         id
         iid

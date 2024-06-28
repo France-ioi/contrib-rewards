@@ -4,7 +4,7 @@ import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {DonationFull, DonationInput} from "@/app/lib/definitions";
 import {auth} from "@/app/lib/auth";
 import {Donation, User} from "@prisma/client";
-import {Decimal} from "@prisma/client/runtime/binary";
+import {Prisma} from "@prisma/client";
 import {getCurrentPeriodData} from "@/app/lib/helpers";
 
 export async function createDonation(donationInput: DonationInput) {
@@ -14,12 +14,52 @@ export async function createDonation(donationInput: DonationInput) {
     throw new Error('You should be logged in');
   }
 
+  const mergeRequest = await prisma.mergeRequest.findUnique({
+    where: {
+      id: donationInput.mergeRequestId,
+    },
+    include: {
+      authors: true,
+    },
+  });
+
+  if (null === mergeRequest) {
+    throw new Error("Unknown merge request");
+  }
+
+  const splits = [];
+  const authorsById: {[authorId: string]: typeof mergeRequest.authors[0]} = {};
+  for (let i = 0; i < mergeRequest.authors.length; i++) {
+    const author = mergeRequest.authors[i];
+    authorsById[author.id] = author;
+  }
+
+  let totalAmount = 0;
+  const splitsToCreate: Prisma.DonationSplitUncheckedCreateWithoutDonationInput[] = [];
+  for (let [authorId, splitAmount] of Object.entries(donationInput.splits)) {
+    if (!(authorId in authorsById)) {
+      throw new Error("This author id does not belong to the merge request authors: " + authorId);
+    }
+    totalAmount += splitAmount;
+    splitsToCreate.push({
+      amount: splitAmount,
+      recipientId: authorsById[authorId].authorId,
+    });
+  }
+
+  if (totalAmount !== donationInput.amount) {
+    throw new Error("Total amount does not equal sum of split amounts");
+  }
+
   const donation = await prisma.donation.create({
     data: {
       mergeRequestId: donationInput.mergeRequestId,
       amount: donationInput.amount,
       review: donationInput.review,
       donorId: user.id,
+      splits: {
+        create: splitsToCreate,
+      },
     },
   });
 
@@ -88,7 +128,22 @@ export async function fetchDonations(user: User): Promise<DonationFull[]> {
     include: {
       mergeRequest: {
         include: {
-          authors: true,
+          authors: {
+            include: {
+              author: {
+                select: {
+                  name: true,
+                  image: true,
+                },
+              },
+            }
+          },
+          bestDonor: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
           donations: {
             select: {
               amount: true,
@@ -101,7 +156,19 @@ export async function fetchDonations(user: User): Promise<DonationFull[]> {
           },
         },
       },
-      splits: true,
+      splits: {
+        include: {
+          recipient: {
+            select: {
+              name: true,
+              image: true,
+            }
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
     },
   });
 

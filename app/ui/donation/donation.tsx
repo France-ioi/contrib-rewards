@@ -11,6 +11,7 @@ import {DonationFull} from "@/app/lib/definitions";
 import {getLeadAmountFromCurrentAmount} from "@/app/lib/helpers";
 import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
+import UserAvatar from "@/app/ui/user-avatar";
 
 interface DonationProps {
   donation: DonationFull,
@@ -47,12 +48,12 @@ export default function Donation({donation}: DonationProps) {
 
   return (
     <div className="rounded-lg shadow-card w-full p-4 bg-white">
-      <ContributionModal
+      {modalOpen && <ContributionModal
         mergeRequest={donation.mergeRequest}
         amount={givenAmount}
-        open={modalOpen}
+        open
         onClose={() => setModalOpen(false)}
-      />
+      />}
 
       <div className="flex flex-col md:flex-row gap-6">
         <div className="">
@@ -62,37 +63,57 @@ export default function Donation({donation}: DonationProps) {
             </h3>
           </header>
           <div className="flex flex-col md:flex-row mt-6 gap-6">
-            <div className="bg-container-grey rounded-lg p-4">
+            <div className="bg-container-grey rounded-lg p-4 grow">
               <p className="text-xl">
                 You gave to this merge
               </p>
-              <p className={`font-bold text-project-focus text-6xl md:text-9xl text-center mt-12 mb-12 ${inter.className}`}>
+              <p className={`font-bold text-project-focus text-6xl md:text-9xl text-center mt-12 mb-12 px-6 ${inter.className}`}>
                 {donation.amount.toString()}<span className="text-7xl">{config.currency}</span>
               </p>
               <div className="text-light text-center">
                 <UiButton
                   color="outlined"
                   className="flex-grow w-full"
+                  onClick={() => openGiveModal(null)}
                 >
                   Donate more
                 </UiButton>
               </div>
             </div>
-            <div className="p-4">
-              <p className="text-light text-xl">How you split your donation</p>
+            {donation.splits.length > 1 && <div className="grow p-4">
+              <p className="text-light text-xl mb-6">How you split your donation</p>
 
-              <p>TODO</p>
-            </div>
+              <div className="flex flex-col gap-4">
+                {donation.splits.map(split =>
+                  <div className="flex gap-3" key={split.id}>
+                    <UserAvatar user={split.recipient} size={60}/>
+
+                    <div className="grow">
+                      <div className="text-xl text-light">
+                        {Number(split.amount)}{config.currency} to {split.recipient.name}
+                      </div>
+                      <div className="h-[3px] rounded-full bg-[#0000001A] shadow-progress-split mt-3">
+                        <div
+                          className="rounded-full h-full bg-[#0F61FF]"
+                          style={{width: `${Math.round(Number(split.amount) / Number(donation.amount) * 100)}%`}}
+                        >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>}
           </div>
         </div>
 
-        <div className="grow bg-container-grey rounded-lg p-4">
+        <div className={`grow bg-container-grey rounded-lg p-4 ${donation.splits.length <= 1 ? 'basis-3/4' : ''}`}>
           <Image
             width={60}
             height={60}
             src={PenIcon}
             alt="Review"
-            className="hidden md:visible mb-6"
+            className="hidden md:block mb-6"
           />
 
           <div className="text-light text-xl">
