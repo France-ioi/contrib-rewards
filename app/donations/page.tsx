@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Donations',
 };
 
-export default async function Page() {
+export default async function DonationsPage() {
   const session = await auth();
   const user = session?.user;
   if (!user) {

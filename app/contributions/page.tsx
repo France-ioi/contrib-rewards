@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Contributions',
 };
 
-export default async function Page() {
+export default async function ContributionsPage() {
   const session = await auth();
 
   const contributions = await fetchMergeRequests();
