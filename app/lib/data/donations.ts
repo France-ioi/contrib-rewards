@@ -44,6 +44,7 @@ export async function createDonation(donationInput: DonationInput) {
     splitsToCreate.push({
       amount: splitAmount,
       recipientId: authorsById[authorId].authorId,
+      claimed: false,
     });
   }
 

@@ -61,17 +61,19 @@ export async function fetchMergeRequests(authorId: string|null = null): Promise<
 
   const mergeRequestIds = mergeRequests.map(mergeRequest => mergeRequest.id);
 
-  const backersData = await prisma.$queryRaw
+  const backerDataByMergeRequestId: {[mergeRequestId: string]: MergeRequestBackingData} = {};
+  if (mergeRequestIds.length) {
+    const backersData = await prisma.$queryRaw
       `SELECT mergeRequestId, SUM(amount) AS sum, COUNT(DISTINCT donorId) AS count
        FROM \`Donation\`
        WHERE mergeRequestId IN (${Prisma.join(mergeRequestIds)})
        GROUP BY mergeRequestId` as {mergeRequestId: string, sum: number, count: number}[];
 
-  const backerDataByMergeRequestId: {[mergeRequestId: string]: MergeRequestBackingData} = {};
-  for (let backerData of backersData) {
-    backerDataByMergeRequestId[backerData.mergeRequestId] = {
-      donationsSum: Number(backerData.sum),
-      donorsCount: Number(backerData.count),
+    for (let backerData of backersData) {
+      backerDataByMergeRequestId[backerData.mergeRequestId] = {
+        donationsSum: Number(backerData.sum),
+        donorsCount: Number(backerData.count),
+      }
     }
   }
 

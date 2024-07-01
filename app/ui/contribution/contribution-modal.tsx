@@ -210,14 +210,14 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                   <div className="flex flex-col md:flex-row gap-2 items-center justify-center">
                     {!changingAmount && <UiButton
                       color="outlined"
-                      className={`flex-grow ${!leadAmountButton ? 'max-w-[200px]' : ''}`}
+                      className={`flex-grow ${!leadAmountButton ? 'max-w-[300px]' : ''}`}
                       onClick={() => setChangingAmount(true)}
                     >
                       Change amount
                     </UiButton>}
                     {leadAmountButton && <UiButton
                       color="outlined"
-                      className="flex-grow max-w-[200px]"
+                      className={`flex-grow ${changingAmount ? 'max-w-[300px]' : ''}`}
                       onClick={takeLeadAmount}
                     >
                       {leadAmount}{config.currency} to take the lead
