@@ -149,6 +149,7 @@ export default function Donation({donation}: DonationProps) {
               onClick={() => openGiveModal(leadAmount!)}
             >
               Give {leadAmount!}{config.currency} to take the lead
+              {/*TODO: take into account amount already given to calculate lead amount*/}
             </UiButton>}
           </div>
         </div>}
