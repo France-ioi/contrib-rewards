@@ -9,6 +9,8 @@ import config from "@/app/lib/config";
 import DonationIcon from "@/public/icons/donation.svg";
 import {getAuthorStats} from "@/app/lib/data/author";
 import NonLoggedState from "@/app/ui/non-logged-state";
+import {UiButton} from "@/app/ui/button";
+import ClaimButton from "@/app/ui/claim-button";
 
 export const metadata: Metadata = {
   title: 'Author',
@@ -37,7 +39,15 @@ export default async function AuthorPage() {
           <UserStats
             icon={ClockIcon}
             label={`Unclaimed donations`}
-            value={`${authorStats.totalUnclaimedAmount}${config.currency}`}
+            value={
+              <div className="flex gap-6 items-center">
+                <div className={`${0 < authorStats.totalUnclaimedAmount ? 'bg-clip-text bg-gradient-to-r text-transparent from-[#0F61FF] to-[#E01AFF] leading-[4rem]' : ''}`}>
+                  {authorStats.totalUnclaimedAmount}{config.currency}
+                </div>
+
+                {0 < authorStats.totalUnclaimedAmount && <ClaimButton/>}
+              </div>
+            }
           />
 
           {authorStats.firstDonationReceivedDate && <UserStats
