@@ -4,12 +4,11 @@ import Contribution from "@/app/ui/contribution/contribution";
 import {SessionProvider} from "next-auth/react";
 import {auth} from "@/app/lib/auth";
 import UserStats from "@/app/ui/user-stats";
-import ClockIcon from "@/public/icons/clock.svg";
+import PiggyBankIcon from "@/public/icons/piggy_bank.svg";
 import config from "@/app/lib/config";
 import DonationIcon from "@/public/icons/donation.svg";
 import {getAuthorStats} from "@/app/lib/data/author";
 import NonLoggedState from "@/app/ui/non-logged-state";
-import {UiButton} from "@/app/ui/button";
 import ClaimButton from "@/app/ui/claim-button";
 
 export const metadata: Metadata = {
@@ -37,7 +36,7 @@ export default async function AuthorPage() {
       <main className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row gap-2">
           <UserStats
-            icon={ClockIcon}
+            icon={PiggyBankIcon}
             label={`Unclaimed donations`}
             value={
               <div className="flex gap-6 items-center">
