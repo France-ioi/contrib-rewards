@@ -3,6 +3,7 @@ import {fetchMergeRequests} from "@/app/lib/data/contributions";
 import Contribution from "@/app/ui/contribution/contribution";
 import {SessionProvider} from "next-auth/react";
 import {auth} from "@/app/lib/auth";
+import config from "@/app/lib/config";
 
 export const metadata: Metadata = {
   title: 'Contributions',
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 export default async function ContributionsPage() {
   const session = await auth();
 
-  const contributions = await fetchMergeRequests();
+  const mergedAfter = new Date(new Date().getTime() - config.contributionsDisplayLastMonths * 30 * 86400 * 1000);
+
+  const contributions = await fetchMergeRequests(null, mergedAfter);
 
   return (
     <SessionProvider session={session}>

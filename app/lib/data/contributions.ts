@@ -6,7 +6,7 @@ import {
   MergeRequestWithAuthorsAndBackingData
 } from "@/app/lib/definitions";
 
-export async function fetchMergeRequests(authorId: string|null = null): Promise<MergeRequestWithAuthorsAndBackingData[]> {
+export async function fetchMergeRequests(authorId: string|null = null, mergedAfter: Date|null = null): Promise<MergeRequestWithAuthorsAndBackingData[]> {
   const gitlabFetcher = new GitlabFetcher();
 
   try {
@@ -19,8 +19,7 @@ export async function fetchMergeRequests(authorId: string|null = null): Promise<
     });
 
     if (!latestMergeRequestInBase.length || latestMergeRequestID !== latestMergeRequestInBase[0].repositoryId) {
-      // TODO: limit to current period
-      const mergeRequests = await gitlabFetcher.getMergeRequests({});
+      const mergeRequests = await gitlabFetcher.getMergeRequests({mergedAfter});
       await syncMergeRequestsWithDatabase(mergeRequests);
     }
   } catch (e) {
@@ -28,17 +27,21 @@ export async function fetchMergeRequests(authorId: string|null = null): Promise<
     console.error(e);
   }
 
-  // TODO: limit to current period
   const mergeRequests = await prisma.mergeRequest.findMany({
-    ...(authorId ? {
-      where: {
+    where: {
+      ...(authorId ? {
         authors: {
           some: {
             authorId: authorId,
           }
         }
-      },
-    } : {}),
+      } : {}),
+      ...(mergedAfter ? {
+        mergedAt: {
+          gte: mergedAfter,
+        },
+      } : {}),
+    },
     include: {
       authors: {
         include: {
@@ -66,6 +69,9 @@ export async function fetchMergeRequests(authorId: string|null = null): Promise<
           image: true,
         },
       },
+    },
+    orderBy: {
+      mergedAt: 'desc',
     },
   });
 

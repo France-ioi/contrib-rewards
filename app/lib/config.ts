@@ -10,6 +10,7 @@ interface Config {
   donationTarget: number,
   currency: string,
   webServerUrl: string,
+  contributionsDisplayLastMonths: number,
 }
 
 const appConfig: Config = {
@@ -24,6 +25,7 @@ const appConfig: Config = {
   donationTarget: Number(process.env.NEXT_PUBLIC_DONATION_TARGET),
   currency: String(process.env.NEXT_PUBLIC_CURRENCY),
   webServerUrl: String(process.env.NEXT_PUBLIC_WEB_SERVER_URL),
+  contributionsDisplayLastMonths: Number(process.env.CONTRIBUTIONS_DISPLAY_LAST_MONTHS),
 };
 
 export default appConfig;
