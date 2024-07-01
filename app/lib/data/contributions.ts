@@ -50,6 +50,16 @@ export async function fetchMergeRequests(authorId: string|null = null): Promise<
           },
         }
       },
+      donations: {
+        include: {
+          donor: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+      },
       bestDonor: {
         select: {
           name: true,

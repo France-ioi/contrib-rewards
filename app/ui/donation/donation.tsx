@@ -68,7 +68,7 @@ export default function Donation({donation}: DonationProps) {
       />
 
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="">
+        <div>
           <header className="flex gap-3 items-start">
             <h3 className="text-3xl">
               {donation.mergeRequest.title}

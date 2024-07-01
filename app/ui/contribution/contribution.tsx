@@ -93,6 +93,16 @@ export default function Contribution({mergeRequest}: ContributionProps) {
           <div className="flex flex-col md:flex-row mt-6 gap-6">
             <div className="bg-container-grey rounded-lg p-4 flex items-center justify-center">
               <div>
+                {!!mergeRequest.donations?.length && <div className="flex justify-center items-center mb-4">
+                  {mergeRequest.donations.map(donation =>
+                    <div key={donation.id} className="rounded-full border-4 border-[#F2F2F2] ml-[-10px]">
+                      <UserAvatar
+                        user={donation.donor}
+                        size={40}
+                      />
+                    </div>
+                  )}
+                </div>}
                 <div className="text-light text-center">
                   {mergeRequest.authors.length} author{mergeRequest.authors.length > 1 ? 's' : ''}, {mergeRequest.donorsCount} backer{mergeRequest.donorsCount > 1 ? 's' : ''}
                 </div>

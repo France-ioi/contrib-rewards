@@ -19,7 +19,17 @@ export type MergeRequestWithAuthors = Prisma.MergeRequestGetPayload<{
             image: true,
           },
         },
-      }
+      },
+    },
+    donations: {
+      include: {
+        donor: {
+          select: {
+            name: true,
+            image: true,
+          },
+        },
+      },
     },
     bestDonor: {
       select: {
@@ -58,6 +68,14 @@ export type DonationFull = Prisma.DonationGetPayload<{
           },
         },
         donations: {
+          include: {
+            donor: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
           select: {
             amount: true,
             donorId: true,
