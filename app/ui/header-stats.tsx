@@ -54,8 +54,10 @@ export default async function HeaderStats() {
               />
 
               <div className="grow h-[8px] rounded-full bg-[#1A5DF9]">
-                <div className="h-full rounded-full bg-[#E01AFF]"
-                     style={{width: Math.round(periodData.periodPercentage * 100) + '%'}}>
+                <div
+                  className="h-full rounded-full bg-[#E01AFF] px-1"
+                  style={{width: Math.round(periodData.periodPercentage * 100) + '%'}}
+                >
                 </div>
               </div>
 

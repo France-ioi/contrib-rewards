@@ -86,6 +86,7 @@ model DonationSplit {
   donationId   String
   recipientId  String
   amount       Decimal  @db.Decimal(18,8)
+  claimed      Boolean
   donation     Donation @relation(fields: [donationId], references: [id])
   recipient    User     @relation(fields: [recipientId], references: [id])
 

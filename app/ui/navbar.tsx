@@ -14,7 +14,7 @@ const navbarItems = [
   },
   {
     name: 'Author page',
-    href: '/authors',
+    href: '/author',
   },
 ];
 

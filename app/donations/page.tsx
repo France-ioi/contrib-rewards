@@ -9,6 +9,7 @@ import ClockIcon from "@/public/icons/clock.svg";
 import DonationIcon from "@/public/icons/donation.svg";
 import MedalIcon from "@/public/icons/medal.svg";
 import {uppercaseFirst} from "@/app/lib/helpers";
+import NonLoggedState from "@/app/ui/non-logged-state";
 
 export const metadata: Metadata = {
   title: 'Donations',
@@ -17,10 +18,13 @@ export const metadata: Metadata = {
 export default async function DonationsPage() {
   const session = await auth();
   const user = session?.user;
+
   if (!user) {
     return (
       <main className="container mx-auto px-4">
-        <div>Empty state</div>
+        <NonLoggedState
+          label="to see your donations"
+        />
       </main>
     );
   }
@@ -51,18 +55,20 @@ export default async function DonationsPage() {
           />
         </div>
 
-        <h2 className="text-4xl mb-8 mt-12">
-          Past donations
-        </h2>
-
-        <div className="w-full flex flex-col gap-6">
-          {donations.map(donation =>
-            <Donation
-              key={donation.id}
-              donation={donation}
-            />
-          )}
-        </div>
+        {0 < donations.length && <>
+          <h2 className="text-4xl mb-8 mt-12">
+            Past donations
+          </h2>
+          <div className="w-full flex flex-col gap-6">
+            {donations.map(donation =>
+              <Donation
+                key={donation.id}
+                donation={donation}
+              />
+            )}
+          </div>
+        </>
+        }
       </main>
     </SessionProvider>
   );

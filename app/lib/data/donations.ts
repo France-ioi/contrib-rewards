@@ -28,7 +28,6 @@ export async function createDonation(donationInput: DonationInput) {
     throw new Error("Unknown merge request");
   }
 
-  const splits = [];
   const authorsById: {[authorId: string]: typeof mergeRequest.authors[0]} = {};
   for (let i = 0; i < mergeRequest.authors.length; i++) {
     const author = mergeRequest.authors[i];

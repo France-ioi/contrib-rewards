@@ -8,7 +8,7 @@ interface UserStatsProps {
 
 export default function UserStats({icon, label, value}: UserStatsProps) {
   return (
-    <div className="grow rounded-lg bg-white p-4 flex gap-4 items-center">
+    <div className="grow rounded-lg bg-white p-4 flex gap-4 items-center max-w-[800px]">
       <Image
         width={32}
         height={32}

@@ -22,3 +22,17 @@ yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Login Module configuration
+
+Here are the fields to specify in the login module configuration for Kudoz client:
+
+```
+redirect: http://localhost:3000/api/auth/callback/france-ioi
+user_attributes: ["primary_email","first_name","last_name"]
+verifiable_attributes: ["primary_email"]
+recommended_attributes: ["picture"]
+```
+
+Don't forget to add in `oauth_client_verification_method` the verification
+method corresponding to the `email_code` (cf table `verification_methods`).

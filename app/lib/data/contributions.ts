@@ -3,11 +3,10 @@ import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {Prisma} from "@prisma/client";
 import {
   MergeRequestBackingData,
-  MergeRequestWithAuthors,
   MergeRequestWithAuthorsAndBackingData
 } from "@/app/lib/definitions";
 
-export async function fetchMergeRequests(): Promise<MergeRequestWithAuthorsAndBackingData[]> {
+export async function fetchMergeRequests(authorId: string|null = null): Promise<MergeRequestWithAuthorsAndBackingData[]> {
   const gitlabFetcher = new GitlabFetcher();
 
   try {
@@ -31,6 +30,15 @@ export async function fetchMergeRequests(): Promise<MergeRequestWithAuthorsAndBa
 
   // TODO: limit to current period
   const mergeRequests = await prisma.mergeRequest.findMany({
+    ...(authorId ? {
+      where: {
+        authors: {
+          some: {
+            authorId: authorId,
+          }
+        }
+      },
+    } : {}),
     include: {
       authors: {
         include: {
