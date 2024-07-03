@@ -8,11 +8,15 @@ import config from "@/app/lib/config";
 import DonationIcon from "@/public/icons/donation.svg";
 import {getAuthorStats} from "@/app/lib/data/author";
 import NonLoggedState from "@/app/ui/non-logged-state";
-import ClaimButton from "@/app/ui/claim-button";
+import dynamic from "next/dynamic";
 
 export const metadata: Metadata = {
   title: 'Author',
 };
+
+const ClaimButton = dynamic(() => import("@/app/ui/claim-button"), {
+  ssr: false,
+});
 
 export default async function AuthorPage() {
   const session = await auth();

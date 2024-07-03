@@ -16,6 +16,8 @@ interface Config {
   contributionsDisplayLastMonths: number,
   tezosRpc: string,
   tezosNetworkType: NetworkType,
+  smartContractAddress: string,
+  emailHashSalt: string,
 }
 
 const appConfig: Config = {
@@ -34,6 +36,8 @@ const appConfig: Config = {
   contributionsDisplayLastMonths: Number(process.env.CONTRIBUTIONS_DISPLAY_LAST_MONTHS),
   tezosRpc: String(process.env.NEXT_PUBLIC_TEZOS_RPC),
   tezosNetworkType: String(process.env.NEXT_PUBLIC_TEZOS_NETWORK_TYPE) as NetworkType,
+  smartContractAddress: String(process.env.NEXT_PUBLIC_TEZOS_SMART_CONTRACT_ADDRESS),
+  emailHashSalt: String(process.env.EMAIL_HASH_SALT),
 };
 
 export default appConfig;

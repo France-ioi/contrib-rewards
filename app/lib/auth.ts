@@ -1,12 +1,15 @@
-import NextAuth from "next-auth";
+import NextAuth, {type DefaultSession} from "next-auth";
 import {PrismaAdapter} from "@auth/prisma-adapter"
 import config from "@/app/lib/config";
 import prisma from "@/app/lib/db";
 import {User, Prisma} from "@prisma/client";
+import {hashEmail} from "@/app/lib/user";
 
 declare module "next-auth" {
   interface Session {
-    user: User,
+    user: {
+      emailHash: string,
+    } & User & DefaultSession["user"]
   }
 }
 
@@ -61,8 +64,14 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
   ],
 
   callbacks: {
-    session({session, user}) {
-      return session;
+    async session({session, user}) {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          emailHash: await hashEmail(session.user),
+        }
+      };
     },
   },
 
