@@ -1,6 +1,8 @@
 import {TezosToolkit} from '@taquito/taquito';
 import config from "@/app/lib/config";
 import {BeaconWallet} from "@taquito/beacon-wallet";
+import {User} from "@prisma/client";
+import {hashEmail} from "@/app/lib/user";
 
 const Tezos = new TezosToolkit(config.tezosRpc);
 const wallet = new BeaconWallet({

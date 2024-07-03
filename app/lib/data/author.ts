@@ -1,8 +1,9 @@
 import {User} from "@prisma/client";
 import prisma from "@/app/lib/db";
+import {getTotalUnclaimedAmount} from "@/app/lib/smart_contract_server";
 
 export async function getAuthorStats(user: User) {
-  const totalUnclaimedAmount = 42; // TODO, fetch them from smart contract
+  const totalUnclaimedAmount = await getTotalUnclaimedAmount(user);
 
   const totalAmount = await prisma.donationSplit.aggregate({
     where: {

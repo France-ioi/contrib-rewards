@@ -1,7 +1,7 @@
 'use client';
 
 import {UiButton} from "@/app/ui/button";
-import {smartContractClaim} from "@/app/lib/smart_contract";
+import {smartContractClaim} from "@/app/lib/smart_contract_client";
 import {useState} from "react";
 import {useSession} from "next-auth/react";
 
