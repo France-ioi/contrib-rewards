@@ -9,6 +9,8 @@ import {getCurrentPeriodData} from "@/app/lib/helpers";
 import SortOrder = Prisma.SortOrder;
 
 export async function createDonation(donationInput: DonationInput) {
+  // TODO: add operation hash in donationInput, fetch operation on blockchain, check amounts correspond (or fetch them from the blockchain)
+  
   const session = await auth();
   const user = session?.user;
   if (!user) {
@@ -44,7 +46,6 @@ export async function createDonation(donationInput: DonationInput) {
     splitsToCreate.push({
       amount: splitAmount,
       recipientId: authorsById[authorId].authorId,
-      claimed: false,
     });
   }
 

@@ -25,7 +25,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Login Module configuration
 
-Here are the fields to specify in the login module configuration for Kudoz client:
+Here are the fields to specify in the login module configuration for this client:
 
 ```
 redirect: http://localhost:3000/api/auth/callback/france-ioi

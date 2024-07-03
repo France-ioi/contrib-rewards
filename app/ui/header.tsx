@@ -2,6 +2,7 @@ import Image from "next/image";
 import Navbar from "@/app/ui/navbar";
 import UserMenu from "@/app/ui/user/user-menu";
 import HeaderStats from "@/app/ui/header-stats";
+import config from "@/app/lib/config";
 
 export default function Header() {
   return (
@@ -21,7 +22,7 @@ export default function Header() {
             </div>
 
             <h1 className="text-3xl md:text-6xl font-black leading-8 text-actions-hover">
-              Kudoz
+              {config.appName}
             </h1>
           </div>
           <div>

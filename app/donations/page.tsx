@@ -1,5 +1,4 @@
 import {Metadata} from "next";
-import {SessionProvider} from "next-auth/react";
 import {auth} from "@/app/lib/auth";
 import {fetchDonations, getUserDonationStats} from "@/app/lib/data/donations";
 import Donation from "@/app/ui/donation/donation";
@@ -33,43 +32,41 @@ export default async function DonationsPage() {
   const userDonationStats = await getUserDonationStats(user);
 
   return (
-    <SessionProvider session={session}>
-      <main className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row gap-2">
-          <UserStats
-            icon={ClockIcon}
-            label={`${uppercaseFirst(config.donationPeriodLabel)}, you've donated`}
-            value={`${userDonationStats.periodAmount}${config.currency}`}
-          />
+    <main className="container mx-auto px-4">
+      <div className="flex flex-col md:flex-row gap-2">
+        <UserStats
+          icon={ClockIcon}
+          label={`${uppercaseFirst(config.donationPeriodLabel)}, you've donated`}
+          value={`${userDonationStats.periodAmount}${config.currency}`}
+        />
 
-          {userDonationStats.firstDonationDate && <UserStats
-            icon={DonationIcon}
-            label={`Since ${userDonationStats.firstDonationDate.toLocaleString('en', {month: 'long'})} ${userDonationStats.firstDonationDate.getFullYear()}, you've donated`}
-            value={`${userDonationStats.totalAmount}${config.currency}`}
-          />}
+        {userDonationStats.firstDonationDate && <UserStats
+          icon={DonationIcon}
+          label={`Since ${userDonationStats.firstDonationDate.toLocaleString('en', {month: 'long'})} ${userDonationStats.firstDonationDate.getFullYear()}, you've donated`}
+          value={`${userDonationStats.totalAmount}${config.currency}`}
+        />}
 
-          <UserStats
-            icon={MedalIcon}
-            label={`Number of current top donation spots you own`}
-            value={String(userDonationStats.currentTopDonationSpots)}
-          />
+        <UserStats
+          icon={MedalIcon}
+          label={`Number of current top donation spots you own`}
+          value={String(userDonationStats.currentTopDonationSpots)}
+        />
+      </div>
+
+      {0 < donations.length && <>
+        <h2 className="text-4xl mb-8 mt-12">
+          Past donations
+        </h2>
+        <div className="w-full flex flex-col gap-6">
+          {donations.map(donation =>
+            <Donation
+              key={donation.id}
+              donation={donation}
+            />
+          )}
         </div>
-
-        {0 < donations.length && <>
-          <h2 className="text-4xl mb-8 mt-12">
-            Past donations
-          </h2>
-          <div className="w-full flex flex-col gap-6">
-            {donations.map(donation =>
-              <Donation
-                key={donation.id}
-                donation={donation}
-              />
-            )}
-          </div>
-        </>
-        }
-      </main>
-    </SessionProvider>
+      </>
+      }
+    </main>
   );
 }

@@ -167,7 +167,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
       scrollBehavior="inside"
     >
       <ModalContent>
-        {(onClose) => (
+        {() => (
           <>
             <ModalBody>
               {donation ?

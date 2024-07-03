@@ -1,4 +1,7 @@
+import {NetworkType} from "@airgap/beacon-types";
+
 interface Config {
+  appName: string,
   databaseUrl: string,
   repositoryEndpoint: string,
   repositoryPath: string,
@@ -11,9 +14,12 @@ interface Config {
   currency: string,
   webServerUrl: string,
   contributionsDisplayLastMonths: number,
+  tezosRpc: string,
+  tezosNetworkType: NetworkType,
 }
 
 const appConfig: Config = {
+  appName: String(process.env.NEXT_PUBLIC_APP_NAME),
   databaseUrl: String(process.env.DATABASE_URL),
   repositoryEndpoint: String(process.env.REPOSITORY_ENDPOINT),
   repositoryPath: String(process.env.REPOSITORY_PATH),
@@ -26,6 +32,8 @@ const appConfig: Config = {
   currency: String(process.env.NEXT_PUBLIC_CURRENCY),
   webServerUrl: String(process.env.NEXT_PUBLIC_WEB_SERVER_URL),
   contributionsDisplayLastMonths: Number(process.env.CONTRIBUTIONS_DISPLAY_LAST_MONTHS),
+  tezosRpc: String(process.env.NEXT_PUBLIC_TEZOS_RPC),
+  tezosNetworkType: String(process.env.NEXT_PUBLIC_TEZOS_NETWORK_TYPE) as NetworkType,
 };
 
 export default appConfig;

@@ -2,15 +2,7 @@ import {User} from "@prisma/client";
 import prisma from "@/app/lib/db";
 
 export async function getAuthorStats(user: User) {
-  const totalUnclaimedAmount = await prisma.donationSplit.aggregate({
-    where: {
-      recipientId: user.id,
-      claimed: false,
-    },
-    _sum: {
-      amount: true,
-    },
-  });
+  const totalUnclaimedAmount = 42; // TODO, fetch them from smart contract
 
   const totalAmount = await prisma.donationSplit.aggregate({
     where: {
@@ -36,7 +28,7 @@ export async function getAuthorStats(user: User) {
 
   return {
     totalAmount: totalAmount._sum.amount?.toNumber() ?? 0,
-    totalUnclaimedAmount: totalUnclaimedAmount._sum.amount?.toNumber() ?? 0,
+    totalUnclaimedAmount: totalUnclaimedAmount,
     firstDonationReceivedDate: firstDonationReceivedDate._min.createdAt,
   };
 }

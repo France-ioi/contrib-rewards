@@ -3,14 +3,10 @@ import {PrismaAdapter} from "@auth/prisma-adapter"
 import config from "@/app/lib/config";
 import prisma from "@/app/lib/db";
 import {User, Prisma} from "@prisma/client";
-import {AdapterAccount} from "@auth/core/adapters";
 
 declare module "next-auth" {
   interface Session {
     user: User,
-  }
-  interface Profile {
-    login: string,
   }
 }
 
@@ -29,12 +25,6 @@ prismaAdapter.createUser = (data: User) => {
     data: dataWithoutEmailVerified,
   });
 };
-
-prismaAdapter.linkAccount = (data) => {
-  console.log('link account', data);
-
-  return prisma.account.create({ data }) as unknown as AdapterAccount;
-}
 
 export const {handlers, signIn, signOut, auth} = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
@@ -58,7 +48,7 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
       token: config.oauthServerUrl + "/oauth/token",
       userinfo: config.oauthServerUrl + "/user_api/account",
       profile(profile) {
-        console.log({profile});
+        console.log('profile', profile);
         return {
           id: String(profile.id),
           login: profile.login,
@@ -78,7 +68,6 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
 
   events: {
     async linkAccount({profile, user}) {
-      console.log('image', {profile, user})
       // @ts-ignore
       await completeUserDataWithProfile(profile, user);
 
