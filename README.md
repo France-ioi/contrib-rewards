@@ -15,6 +15,14 @@ yarn
 Next, copy `.env` to an `.env.local` file and edit this local file
 with your environment variables.
 
+Use this command to generate the secrets.
+
+```
+yarn generate-secrets
+```
+
+Copy them into `.env.local`
+
 Finally, run the development server:
 
 ```

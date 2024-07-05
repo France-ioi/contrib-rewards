@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "prisma-format": "npx prisma-case-format --map-table-case snake --map-field-case snake",
-    "prisma-push": "npx prisma db push"
+    "prisma-push": "npx prisma db push",
+    "generate-secrets": "tsx generate-secrets.ts"
   },
   "dependencies": {
     "@airgap/beacon-dapp": "^4.2.2",
@@ -36,6 +37,7 @@
     "prisma-case-format": "^2.2.1",
     "sass": "^1.77.5",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.16.2",
     "typescript": "^5"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
