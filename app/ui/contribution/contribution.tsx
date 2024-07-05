@@ -7,7 +7,7 @@ import GitlabIcon from '@/public/icons/gitlab.svg';
 import MedalTopIcon from '@/public/icons/medal-top.svg';
 import Image from "next/image";
 import ContributionModal from "@/app/ui/contribution/contribution-modal";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import {UiButton} from "@/app/ui/button";
 import {MergeRequestWithAuthorsAndBackingData} from "@/app/lib/definitions";
 import {useSession} from "next-auth/react";
@@ -35,7 +35,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
     {amount: null},
   ];
   if (mergeRequest.bestDonorId !== user?.id) {
-    leadAmount = getLeadAmountFromCurrentAmount(Number(mergeRequest.bestDonorAmount ?? 0));
+    leadAmount = getLeadAmountFromCurrentAmount(mergeRequest, user);
 
     giveOptions.push({
       amount: leadAmount,
@@ -74,6 +74,15 @@ export default function Contribution({mergeRequest}: ContributionProps) {
     setModalOpen(true);
   };
 
+  const donors = useMemo(() => {
+    const donors: {[key: string]: {name: string|null, image: string|null}} = {};
+    for (let donation of mergeRequest.donations) {
+      donors[donation.donorId] = donation.donor;
+    }
+
+    return Object.values(donors);
+  }, [mergeRequest]);
+
   return (
     <div className="rounded-lg shadow-card w-full p-4 bg-white">
       <div className="flex flex-col md:flex-row gap-6">
@@ -93,11 +102,11 @@ export default function Contribution({mergeRequest}: ContributionProps) {
           <div className="flex flex-col md:flex-row mt-6 gap-6">
             <div className="bg-container-grey rounded-lg p-4 flex items-center justify-center">
               <div>
-                {!!mergeRequest.donations?.length && <div className="flex justify-center items-center mb-3">
-                  {mergeRequest.donations.map(donation =>
-                    <div key={donation.id} className="rounded-full border-4 border-[#F2F2F2] ml-[-10px]">
+                {!!donors.length && <div className="flex justify-center items-center mb-3">
+                  {donors.map((donor, id) =>
+                    <div key={id} className="rounded-full border-4 border-[#F2F2F2] ml-[-10px]">
                       <UserAvatar
-                        user={donation.donor}
+                        user={donor}
                         size={40}
                       />
                     </div>

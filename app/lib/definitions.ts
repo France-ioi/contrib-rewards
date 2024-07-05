@@ -124,10 +124,6 @@ export const DonationFullIncludes = {
           amount: true,
           donorId: true,
         },
-        orderBy: {
-          amount: SortOrder.desc,
-        },
-        take: 1,
       },
     },
   },

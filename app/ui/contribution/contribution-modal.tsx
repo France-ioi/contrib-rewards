@@ -39,7 +39,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
   const user = session?.user;
   let leadAmount = null;
   if (mergeRequest.bestDonorId !== user?.id) {
-    leadAmount = getLeadAmountFromCurrentAmount(Number(mergeRequest.bestDonorAmount ?? 0));
+    leadAmount = getLeadAmountFromCurrentAmount(mergeRequest, user);
   }
 
   const [localAmount, setLocalAmount] = useState<number|null>(amount);

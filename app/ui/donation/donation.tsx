@@ -20,14 +20,14 @@ interface DonationProps {
 
 export default function Donation({donation}: DonationProps) {
   const {data: session} = useSession();
+  const user = session?.user;
   const router = useRouter();
 
   const [initDonation, setInitDonation] = useState<DonationFull|null>(null);
   const [initReview, setInitReview] = useState<string|null>(null);
 
-  const bestDonation = donation.mergeRequest.donations.length ? donation.mergeRequest.donations[0] : null;
-  const leadAmount = bestDonation ? getLeadAmountFromCurrentAmount(bestDonation.amount as unknown as number) : null;
-  const isBestDonation = null !== bestDonation && bestDonation.donorId === session?.user?.id;
+  const leadAmount = getLeadAmountFromCurrentAmount(donation.mergeRequest, user);
+  const isBestDonation = donation.mergeRequest.bestDonorId === session?.user?.id;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [givenAmount, setGivenAmount] = useState<number|null>(null);
@@ -144,12 +144,11 @@ export default function Donation({donation}: DonationProps) {
               Share review
             </UiButton>
 
-            {bestDonation && !isBestDonation && <UiButton
+            {null !== leadAmount && !isBestDonation && <UiButton
               color="lead"
               onClick={() => openGiveModal(leadAmount!)}
             >
               Give {leadAmount!}{config.currency} to take the lead
-              {/*TODO: take into account amount already given to calculate lead amount*/}
             </UiButton>}
           </div>
         </div>}

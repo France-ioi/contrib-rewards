@@ -1,8 +1,25 @@
 // Lead amount is next integer
 import config from "@/app/lib/config";
+import {MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {User} from "@prisma/client";
 
-export function getLeadAmountFromCurrentAmount(currentAmount: number) {
-  return Math.ceil(currentAmount + 0.0001);
+export function getLeadAmountFromCurrentAmount(mergeRequest: MergeRequestWithAuthors, user: User|undefined) {
+  if (!mergeRequest.bestDonor) {
+    return 1;
+  }
+
+  console.log('merge req donations', mergeRequest.donations, mergeRequest.title);
+
+  let alreadyGiven = 0;
+  if (user) {
+    for (let donation of mergeRequest.donations) {
+      if (donation.donorId === user.id) {
+        alreadyGiven += Number(donation.amount);
+      }
+    }
+  }
+
+  return Math.ceil(Number(mergeRequest.bestDonorAmount) - alreadyGiven + 0.0001);
 }
 
 export function getCurrentPeriodData() {
