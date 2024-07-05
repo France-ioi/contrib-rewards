@@ -226,7 +226,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
               src={CoinsIcon}
               alt="Backing"
             />
-            <span className="text-light">The Backing</span>
+            <span className="text-light">Donations</span>
           </header>
           <div className="grow bg-container-grey rounded-lg py-4 px-5 flex items-center justify-center">
             <span className="text-5xl font-medium text-project-focus">
