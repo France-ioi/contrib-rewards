@@ -20,6 +20,7 @@ interface Config {
   emailHashSalt: string,
   nextAuthSecret: string,
   nodeEnv: string,
+  platformSigningPrivateKey: string,
 }
 
 const appConfig: Config = {
@@ -42,6 +43,7 @@ const appConfig: Config = {
   emailHashSalt: String(process.env.EMAIL_HASH_SALT),
   nextAuthSecret: String(process.env.NEXTAUTH_SECRET),
   nodeEnv: String(process.env.NODE_ENV),
+  platformSigningPrivateKey: String(process.env.PLATFORM_SIGNING_PRIVATE_KEY),
 };
 
 export default appConfig;

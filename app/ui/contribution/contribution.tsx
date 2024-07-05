@@ -121,7 +121,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                 <div className="flex flex-col md:flex-row border border-light-grey rounded-lg items-center mt-3">
                   <div className="flex gap-3 items-center px-6 h-[40px]">
                     <div className="text-[#00CB39]">+{mergeRequest.linesAdded}</div>
-                    <div className="text-[#FF120F]">+{mergeRequest.linesRemoved}</div>
+                    <div className="text-[#FF120F]">-{mergeRequest.linesRemoved}</div>
                     <div className="flex gap-1 items-center">
                       <Image
                         width={14}
