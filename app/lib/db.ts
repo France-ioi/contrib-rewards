@@ -1,5 +1,6 @@
 import {PrismaClient} from "@prisma/client";
 import {Decimal} from "@prisma/client/runtime/binary";
+import config from "@/app/lib/config";
 
 const prismaClientSingleton = () => {
   return new PrismaClient()
@@ -11,7 +12,7 @@ declare const globalThis: {
 
 const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
 
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
+if (config.nodeEnv !== 'production') globalThis.prismaGlobal = prisma
 
 export default prisma;
 

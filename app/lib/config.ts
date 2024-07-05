@@ -18,6 +18,8 @@ interface Config {
   tezosNetworkType: NetworkType,
   smartContractAddress: string,
   emailHashSalt: string,
+  nextAuthSecret: string,
+  nodeEnv: string,
 }
 
 const appConfig: Config = {
@@ -38,6 +40,8 @@ const appConfig: Config = {
   tezosNetworkType: String(process.env.NEXT_PUBLIC_TEZOS_NETWORK_TYPE) as NetworkType,
   smartContractAddress: String(process.env.NEXT_PUBLIC_TEZOS_SMART_CONTRACT_ADDRESS),
   emailHashSalt: String(process.env.EMAIL_HASH_SALT),
+  nextAuthSecret: String(process.env.NEXTAUTH_SECRET),
+  nodeEnv: String(process.env.NODE_ENV),
 };
 
 export default appConfig;

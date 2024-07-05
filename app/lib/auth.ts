@@ -30,7 +30,7 @@ prismaAdapter.createUser = (data: User) => {
 };
 
 export const {handlers, signIn, signOut, auth} = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: config.nextAuthSecret,
 
   adapter: prismaAdapter,
 

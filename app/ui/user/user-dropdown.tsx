@@ -5,9 +5,20 @@ import UserIcon from "@/public/icons/user.svg";
 import Image from "next/image";
 import {signOut} from "next-auth/react";
 import Link from "next/link";
+import config from "@/app/lib/config";
+import {useRouter} from "next/navigation";
 
 export default function UserDropdown() {
-  const profileUrl = process.env.NEXT_PUBLIC_OAUTH_SERVER_URL + '/profile';
+  const profileUrl = config.oauthServerUrl + '/profile';
+  const router = useRouter();
+
+  const doSignOut = async () => {
+    const redirectUrl = config.oauthServerUrl + '/logout?redirect_uri=' + encodeURIComponent(config.webServerUrl);
+    await signOut({
+      redirect: false,
+    });
+    router.push(redirectUrl);
+  }
 
   return (
     <Dropdown>
@@ -26,7 +37,7 @@ export default function UserDropdown() {
             Profile
           </Link>
         </DropdownItem>
-        <DropdownItem key="logout" textValue="Log out" onClick={() => signOut()}>Log out</DropdownItem>
+        <DropdownItem key="logout" textValue="Log out" onClick={doSignOut}>Log out</DropdownItem>
       </DropdownMenu>
     </Dropdown>
   );
