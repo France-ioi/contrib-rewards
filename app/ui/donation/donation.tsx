@@ -2,7 +2,6 @@
 
 import PenIcon from '@/public/icons/pen.svg';
 import Image from "next/image";
-import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useState} from "react";
 import {UiButton} from "@/app/ui/button";
 import {useSession} from "next-auth/react";
@@ -13,6 +12,11 @@ import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
 import UserAvatar from "@/app/ui/user-avatar";
 import {useRouter} from "next/navigation";
+import dynamic from "next/dynamic";
+
+const ContributionModal = dynamic(() => import("@/app/ui/contribution/contribution-modal"), {
+  ssr: false,
+});
 
 interface DonationProps {
   donation: DonationFull,

@@ -1,8 +1,6 @@
 import {TezosToolkit} from '@taquito/taquito';
 import config from "@/app/lib/config";
 import {BeaconWallet} from "@taquito/beacon-wallet";
-import {User} from "@prisma/client";
-import {hashEmail} from "@/app/lib/user";
 
 const Tezos = new TezosToolkit(config.tezosRpc);
 const wallet = new BeaconWallet({
@@ -15,7 +13,7 @@ const wallet = new BeaconWallet({
 });
 
 export async function smartContractClaim(emailHash: string) {
-  await connectWallet(wallet);
+  await connectWallet();
 
   const contract = await Tezos.contract.at(config.smartContractAddress);
   const authOp = await contract.methodsObject.auth(emailHash).send();
@@ -25,7 +23,7 @@ export async function smartContractClaim(emailHash: string) {
   await claimOp.confirmation(3);
 }
 
-export async function connectWallet(wallet: BeaconWallet): Promise<string> {
+export async function connectWallet(): Promise<string> {
   await wallet!.requestPermissions();
   Tezos.setWalletProvider(wallet);
 

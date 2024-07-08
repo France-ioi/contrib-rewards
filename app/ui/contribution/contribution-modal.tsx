@@ -16,6 +16,7 @@ import Image from "next/image";
 import {MergeRequestAuthor} from "@prisma/client";
 import ThankYou from "@/app/ui/contribution/thankyou";
 import ShareReview from "@/app/ui/contribution/share-review";
+import {connectWallet} from "@/app/lib/smart_contract_client";
 
 interface ContributionModalProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -77,6 +78,9 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
       amount: localAmount,
       splits: remappedAuthorSplits,
     };
+
+    const userAddress = await connectWallet();
+    // await smartContractAuth(user!, userAddress);
 
     const donation = await createDonation(donationInput);
     setDonation(donation);

@@ -1,6 +1,9 @@
-// Typescript definitions
-import {Prisma} from '@prisma/client'
-import SortOrder = Prisma.SortOrder;
+import {Prisma, User} from '@prisma/client'
+import type {DefaultSession} from "next-auth";
+
+export type UserClient = {
+  emailHash: string,
+} & User & DefaultSession["user"];
 
 export interface DonationInput {
   mergeRequestId: string,

@@ -4,12 +4,11 @@ import config from "@/app/lib/config";
 import prisma from "@/app/lib/db";
 import {User, Prisma} from "@prisma/client";
 import {hashEmail} from "@/app/lib/user";
+import {UserClient} from "@/app/lib/definitions";
 
 declare module "next-auth" {
   interface Session {
-    user: {
-      emailHash: string,
-    } & User & DefaultSession["user"]
+    user: UserClient,
   }
 }
 

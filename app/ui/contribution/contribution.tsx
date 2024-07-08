@@ -6,7 +6,6 @@ import FilesIcon from '@/public/icons/files.svg';
 import GitlabIcon from '@/public/icons/gitlab.svg';
 import MedalTopIcon from '@/public/icons/medal-top.svg';
 import Image from "next/image";
-import ContributionModal from "@/app/ui/contribution/contribution-modal";
 import {useMemo, useState} from "react";
 import {UiButton} from "@/app/ui/button";
 import {MergeRequestWithAuthorsAndBackingData} from "@/app/lib/definitions";
@@ -17,6 +16,11 @@ import {inter} from "@/app/ui/fonts";
 import UserAvatar from "@/app/ui/user-avatar";
 import {getLeadAmountFromCurrentAmount} from "@/app/lib/helpers";
 import {useRouter} from "next/navigation";
+import dynamic from "next/dynamic";
+
+const ContributionModal = dynamic(() => import("@/app/ui/contribution/contribution-modal"), {
+  ssr: false,
+});
 
 interface ContributionProps {
   mergeRequest: MergeRequestWithAuthorsAndBackingData,

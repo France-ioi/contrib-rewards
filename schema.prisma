@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id                   String    @id @default(cuid())
-  name                 String?
-  login                String?
-  email                String    @unique
-  image                String?
-  Session              Session[]
-  Account              Account?
-  Donation             Donation[]
-  DonationSplit        DonationSplit[]
-  MergeRequestAuthor   MergeRequestAuthor[]
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  MergeRequestTopDonor MergeRequest[]
+  id                     String    @id @default(cuid())
+  name                   String?
+  login                  String?
+  email                  String    @unique
+  image                  String?
+  Session                Session[]
+  Account                Account?
+  Donation               Donation[]
+  DonationSplit          DonationSplit[]
+  MergeRequestAuthor     MergeRequestAuthor[]
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  MergeRequestTopDonor   MergeRequest[]
+  salt                   String?
 }
 
 model Account {
