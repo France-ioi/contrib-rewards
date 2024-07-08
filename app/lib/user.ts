@@ -1,5 +1,5 @@
 import {User} from "@prisma/client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import prisma from "@/app/lib/db";
 
 export async function hashEmail(user: User): Promise<string> {

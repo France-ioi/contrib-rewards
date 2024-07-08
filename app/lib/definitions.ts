@@ -5,13 +5,6 @@ export type UserClient = {
   emailHash: string,
 } & User & DefaultSession["user"];
 
-export interface DonationInput {
-  mergeRequestId: string,
-  review?: string,
-  amount: number,
-  splits: {[authorId: string]: number},
-}
-
 export type MergeRequestWithAuthors = Prisma.MergeRequestGetPayload<{
   include: {
     authors: {

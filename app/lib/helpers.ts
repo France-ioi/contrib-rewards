@@ -8,7 +8,7 @@ export function getLeadAmountFromCurrentAmount(mergeRequest: MergeRequestWithAut
     return 1;
   }
 
-  console.log('merge req donations', mergeRequest.donations, mergeRequest.title);
+  // console.log('merge req donations', mergeRequest.donations, mergeRequest.title);
 
   let alreadyGiven = 0;
   if (user) {

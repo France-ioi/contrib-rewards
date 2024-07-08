@@ -50,7 +50,7 @@ export const {handlers, signIn, signOut, auth} = NextAuth({
       token: config.oauthServerUrl + "/oauth/token",
       userinfo: config.oauthServerUrl + "/user_api/account",
       profile(profile) {
-        console.log('profile', profile);
+        // console.log('profile', profile);
         return {
           id: String(profile.id),
           login: profile.login,

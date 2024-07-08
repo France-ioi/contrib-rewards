@@ -1,28 +1,51 @@
 'use server';
 
 import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
-import {DonationFull, DonationFullIncludes, DonationInput} from "@/app/lib/definitions";
+import {DonationFull, DonationFullIncludes} from "@/app/lib/definitions";
 import {auth} from "@/app/lib/auth";
 import {Donation, User} from "@prisma/client";
 import {Prisma} from "@prisma/client";
 import {getCurrentPeriodData} from "@/app/lib/helpers";
 import SortOrder = Prisma.SortOrder;
+import {hashEmail} from "@/app/lib/user";
+import {getTransactionLongPolling} from "@/app/lib/smart_contract_server";
+import config from "@/app/lib/config";
 
-export async function createDonation(donationInput: DonationInput) {
-  // TODO: add operation hash in donationInput, fetch operation on blockchain, check amounts correspond (or fetch them from the blockchain)
-  
+export async function createDonation(operationHash: string) {
   const session = await auth();
   const user = session?.user;
   if (!user) {
     throw new Error('You should be logged in');
   }
 
+  const operation = await getTransactionLongPolling(operationHash, 30*1000);
+  if (null === operation) {
+    throw new Error(`Cannot find operation hash on the blockchain: ${operationHash}`);
+  }
+
+  // console.log('create donation', operationHash, operation);
+
+  if (operation.target?.address !== config.smartContractAddress) {
+    throw new Error(`Transaction was not made on the smart contract: ${operation.target?.address}`);
+  }
+
+  const parameters = operation.parameter?.value;
+
+  const mergeRequestId = parameters.mergeID;
+  const recipients = parameters.recipients;
+  // console.log({recipients});
+  const donationTotalAmount = operation.amount! / 1000000;
+
   const mergeRequest = await prisma.mergeRequest.findUnique({
     where: {
-      id: donationInput.mergeRequestId,
+      id: mergeRequestId,
     },
     include: {
-      authors: true,
+      authors: {
+        include: {
+          author: true,
+        },
+      },
     },
   });
 
@@ -33,40 +56,54 @@ export async function createDonation(donationInput: DonationInput) {
   const authorsById: {[authorId: string]: typeof mergeRequest.authors[0]} = {};
   for (let i = 0; i < mergeRequest.authors.length; i++) {
     const author = mergeRequest.authors[i];
-    authorsById[author.id] = author;
+    const authorHash = await hashEmail(author.author);
+    authorsById[authorHash] = author;
   }
 
   let totalAmount = 0;
   const splitsToCreate: Prisma.DonationSplitUncheckedCreateWithoutDonationInput[] = [];
-  for (let [authorId, splitAmount] of Object.entries(donationInput.splits)) {
-    if (!(authorId in authorsById)) {
-      throw new Error("This author id does not belong to the merge request authors: " + authorId);
+  for (let {recipientEmailHash, amount} of recipients) {
+    if (!(recipientEmailHash in authorsById)) {
+      throw new Error("This author hash does not belong to the merge request authors: " + recipientEmailHash);
     }
+
+    const splitAmount = Number(amount) / 1000000;
     totalAmount += splitAmount;
     splitsToCreate.push({
       amount: splitAmount,
-      recipientId: authorsById[authorId].authorId,
+      recipientId: authorsById[recipientEmailHash].authorId,
     });
   }
 
-  if (totalAmount !== donationInput.amount) {
+  // console.log({totalAmount, donationTotalAmount})
+  if (totalAmount !== donationTotalAmount) {
     throw new Error("Total amount does not equal sum of split amounts");
+  }
+
+  const existingDonation = await prisma.donation.findUnique({
+    where: {
+      operationHash,
+    },
+  });
+
+  if (null !== existingDonation) {
+    throw new Error("This donation has already been registered");
   }
 
   const donation = await prisma.donation.create({
     data: {
-      mergeRequestId: donationInput.mergeRequestId,
-      amount: donationInput.amount,
-      review: donationInput.review,
+      mergeRequestId: mergeRequestId,
+      amount: donationTotalAmount,
       donorId: user.id,
       splits: {
         create: splitsToCreate,
       },
+      operationHash,
     },
     include: DonationFullIncludes,
   });
 
-  await recomputeMergeRequestBestDonation(donationInput.mergeRequestId);
+  await recomputeMergeRequestBestDonation(mergeRequestId);
 
   return donation;
 }
@@ -239,4 +276,21 @@ export async function submitReview(donationId: string, review: string) {
   });
 
   await recomputeMergeRequestBestDonation(donation.mergeRequestId);
+}
+
+export async function getRecipientEmailHashes(recipientIds: string[]) {
+  const users = await prisma.user.findMany({
+    where: {
+      id: {
+        in: recipientIds,
+      },
+    },
+  });
+
+  let mapping: Record<string, string> = {};
+  for (let user of users) {
+    mapping[user.id] = await hashEmail(user);
+  }
+
+  return mapping;
 }

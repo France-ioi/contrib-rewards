@@ -94,7 +94,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
 }`,
         variables: {
           fullPath: config.repositoryPath,
-          mergedAfter: params.mergedAfter?.getDate(),
+          mergedAfter: params.mergedAfter?.toISOString().split('T')[0],
         }
       };
 

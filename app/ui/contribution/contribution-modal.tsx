@@ -1,7 +1,7 @@
 import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
-import {DonationFull, DonationInput, MergeRequestWithAuthors} from "@/app/lib/definitions";
+import {DonationFull, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
-import {createDonation} from "@/app/lib/data/donations";
+import {createDonation, getRecipientEmailHashes} from "@/app/lib/data/donations";
 import {useEffect, useState} from "react";
 import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
@@ -16,7 +16,7 @@ import Image from "next/image";
 import {MergeRequestAuthor} from "@prisma/client";
 import ThankYou from "@/app/ui/contribution/thankyou";
 import ShareReview from "@/app/ui/contribution/share-review";
-import {connectWallet} from "@/app/lib/smart_contract_client";
+import {smartContractDonate} from "@/app/lib/smart_contract_client";
 
 interface ContributionModalProps {
   mergeRequest: MergeRequestWithAuthors,
@@ -67,26 +67,28 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     }
 
     setLoading(true);
+    //TODO: add steps and error handling
 
-    const remappedAuthorSplits: {[authorId: string]: number} = {};
-    for (let i = 0; i < mergeRequest.authors.length; i++) {
-      remappedAuthorSplits[mergeRequest.authors[i].id] = amountSplits[i];
+    try {
+      const emailHashes = await getRecipientEmailHashes(mergeRequest.authors.map(author => author.authorId));
+
+      const remappedAuthorSplits: {[authorId: string]: number} = {};
+      for (let i = 0; i < mergeRequest.authors.length; i++) {
+        remappedAuthorSplits[emailHashes[mergeRequest.authors[i].authorId]] = amountSplits[i];
+      }
+
+      const operationHash = await smartContractDonate(mergeRequest.id, localAmount, remappedAuthorSplits);
+
+      const donation = await createDonation(operationHash);
+
+      setDonation(donation);
+      onDonated();
+    } catch (e) {
+      console.error(e);
+      throw e;
+    } finally {
+      setLoading(false);
     }
-
-    const donationInput: DonationInput = {
-      mergeRequestId: mergeRequest.id,
-      amount: localAmount,
-      splits: remappedAuthorSplits,
-    };
-
-    const userAddress = await connectWallet();
-    // await smartContractAuth(user!, userAddress);
-
-    const donation = await createDonation(donationInput);
-    setDonation(donation);
-    onDonated();
-
-    setLoading(false);
   };
 
   const takeLeadAmount = () => {

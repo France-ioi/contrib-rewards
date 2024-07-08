@@ -78,6 +78,7 @@ model Donation {
   mergeRequest       MergeRequest        @relation(fields: [mergeRequestId], references: [id])
   amount             Decimal             @db.Decimal(18,8)
   splits             DonationSplit[]
+  operationHash      String              @unique
 
   @@index([donorId])
 }
