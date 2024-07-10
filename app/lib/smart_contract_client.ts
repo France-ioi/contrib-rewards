@@ -84,3 +84,20 @@ export async function smartContractDonate(mergeId: string, totalAmount: number, 
 
   return authOp.opHash;
 }
+
+export async function getTotalUnclaimedAmount(emailHash: string) {
+  try {
+    const contract = await Tezos.contract.at(config.smartContractAddress);
+
+
+    return await contract.contractViews.getEmailHashAmount(emailHash).executeView({
+      viewCaller: config.smartContractAddress,
+    });
+  } catch (e: unknown) {
+    if ('Assert failure: self.data.amountsToClaim.contains(params)' !== (e as {failWith: {string: string}}).failWith.string) {
+      console.error(e);
+    }
+
+    return 0;
+  }
+}

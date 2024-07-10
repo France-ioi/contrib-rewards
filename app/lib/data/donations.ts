@@ -15,18 +15,18 @@ export async function createDonation(operationHash: string) {
   const session = await auth();
   const user = session?.user;
   if (!user) {
-    throw new Error('You should be logged in');
+    return {error: 'You should be logged in'};
   }
 
   const operation = await getTransactionLongPolling(operationHash, 30*1000);
   if (null === operation) {
-    throw new Error(`Cannot find operation hash on the blockchain: ${operationHash}`);
+    return {error: `Cannot find operation hash on the blockchain: ${operationHash}`};
   }
 
   // console.log('create donation', operationHash, operation);
 
   if (operation.target?.address !== config.smartContractAddress) {
-    throw new Error(`Transaction was not made on the smart contract: ${operation.target?.address}`);
+    return {error: `Transaction was not made on the smart contract: ${operation.target?.address}`};
   }
 
   const parameters = operation.parameter?.value;
@@ -50,7 +50,7 @@ export async function createDonation(operationHash: string) {
   });
 
   if (null === mergeRequest) {
-    throw new Error("Unknown merge request");
+    return {error: "Unknown merge request"};
   }
 
   const authorsById: {[authorId: string]: typeof mergeRequest.authors[0]} = {};
@@ -64,7 +64,7 @@ export async function createDonation(operationHash: string) {
   const splitsToCreate: Prisma.DonationSplitUncheckedCreateWithoutDonationInput[] = [];
   for (let {recipientEmailHash, amount} of recipients) {
     if (!(recipientEmailHash in authorsById)) {
-      throw new Error("This author hash does not belong to the merge request authors: " + recipientEmailHash);
+      return {error: "This author hash does not belong to the merge request authors: " + recipientEmailHash};
     }
 
     const splitAmount = Number(amount) / 1000000;
@@ -77,7 +77,7 @@ export async function createDonation(operationHash: string) {
 
   // console.log({totalAmount, donationTotalAmount})
   if (totalAmount !== donationTotalAmount) {
-    throw new Error("Total amount does not equal sum of split amounts");
+    return {error: "Total amount does not equal sum of split amounts"};
   }
 
   const existingDonation = await prisma.donation.findUnique({
@@ -87,7 +87,7 @@ export async function createDonation(operationHash: string) {
   });
 
   if (null !== existingDonation) {
-    throw new Error("This donation has already been registered");
+    return {error: "This donation has already been registered"};
   }
 
   const donation = await prisma.donation.create({
@@ -105,7 +105,9 @@ export async function createDonation(operationHash: string) {
 
   await recomputeMergeRequestBestDonation(mergeRequestId);
 
-  return donation;
+  return {
+    donation,
+  };
 }
 
 export async function recomputeMergeRequestBestDonation(mergeRequestId: string) {

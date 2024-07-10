@@ -2,27 +2,12 @@
 
 import {TezosToolkit} from '@taquito/taquito';
 import config from "@/app/lib/config";
-import {User} from "@prisma/client";
-import {hashEmail} from "@/app/lib/user";
 import {UserClient} from "@/app/lib/definitions";
 import {operationsGetTransactionByHash} from "@tzkt/sdk-api";
 import * as api from "@tzkt/sdk-api";
-// import {InMemorySigner} from "@taquito/signer";
 
 const Tezos = new TezosToolkit(config.tezosRpc);
 api.defaults.baseUrl = 'https://api.ghostnet.tzkt.io';
-
-export async function getTotalUnclaimedAmount(user: User) {
-  try {
-    const contract = await Tezos.contract.at(config.smartContractAddress);
-    const emailHash = await hashEmail(user);
-
-    return await contract.views.getEmailHashAmount(emailHash).read();
-  } catch (e) {
-    console.error(e);
-    return 42;
-  }
-}
 
 export async function smartContractAuth(user: UserClient, userAddress: string) {
   const contract = await Tezos.contract.at(config.smartContractAddress);

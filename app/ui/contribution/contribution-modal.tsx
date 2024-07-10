@@ -79,7 +79,11 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
 
       const operationHash = await smartContractDonate(mergeRequest.id, localAmount, remappedAuthorSplits);
 
-      const donation = await createDonation(operationHash);
+      const {donation, error} = await createDonation(operationHash);
+      if (error) {
+        //TODO: handle error;
+        throw new Error(error);
+      }
 
       setDonation(donation);
       onDonated();

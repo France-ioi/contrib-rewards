@@ -9,12 +9,18 @@ import DonationIcon from "@/public/icons/donation.svg";
 import {getAuthorStats} from "@/app/lib/data/author";
 import NonLoggedState from "@/app/ui/non-logged-state";
 import dynamic from "next/dynamic";
+import {Spinner} from "@nextui-org/spinner";
 
 export const metadata: Metadata = {
   title: 'Author',
 };
 
 const ClaimButton = dynamic(() => import("@/app/ui/claim-button"), {
+  loading: () => <div className="flex gap-6 items-center">
+    <div>
+      <Spinner/>
+    </div>
+  </div>,
   ssr: false,
 });
 
@@ -41,13 +47,7 @@ export default async function AuthorPage() {
           icon={PiggyBankIcon}
           label={`Unclaimed donations`}
           value={
-            <div className="flex gap-6 items-center">
-              <div className={`${0 < authorStats.totalUnclaimedAmount ? 'bg-clip-text bg-gradient-to-r text-transparent from-[#0F61FF] to-[#E01AFF] leading-[4rem]' : ''}`}>
-                {authorStats.totalUnclaimedAmount}{config.currency}
-              </div>
-
-              {0 < authorStats.totalUnclaimedAmount && <ClaimButton/>}
-            </div>
+            <ClaimButton/>
           }
         />
 
