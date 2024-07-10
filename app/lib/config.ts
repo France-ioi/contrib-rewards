@@ -19,7 +19,7 @@ interface Config {
   smartContractAddress: string,
   nextAuthSecret: string,
   nodeEnv: string,
-  platformSigningPrivateKey: string,
+  platformSigningSecretKey: string,
 }
 
 const appConfig: Config = {
@@ -41,7 +41,7 @@ const appConfig: Config = {
   smartContractAddress: String(process.env.NEXT_PUBLIC_TEZOS_SMART_CONTRACT_ADDRESS),
   nextAuthSecret: String(process.env.NEXTAUTH_SECRET),
   nodeEnv: String(process.env.NODE_ENV),
-  platformSigningPrivateKey: String(process.env.PLATFORM_SIGNING_PRIVATE_KEY),
+  platformSigningSecretKey: String(process.env.PLATFORM_SIGNING_SECRET_KEY),
 };
 
 export default appConfig;

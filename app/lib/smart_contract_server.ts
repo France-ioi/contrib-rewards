@@ -1,33 +1,61 @@
 "use server";
 
-import {TezosToolkit} from '@taquito/taquito';
 import config from "@/app/lib/config";
-import {UserClient} from "@/app/lib/definitions";
+import {SmartContractAuthPayload, UserClient} from "@/app/lib/definitions";
 import {operationsGetTransactionByHash} from "@tzkt/sdk-api";
 import * as api from "@tzkt/sdk-api";
+import {InMemorySigner} from "@taquito/signer";
+import {MichelsonData, MichelsonType, packDataBytes} from "@taquito/michel-codec";
 
-const Tezos = new TezosToolkit(config.tezosRpc);
 api.defaults.baseUrl = 'https://api.ghostnet.tzkt.io';
 
-export async function smartContractAuth(user: UserClient, userAddress: string) {
-  const contract = await Tezos.contract.at(config.smartContractAddress);
-  //
-  // const message = {
-  //   emailHash: user.emailHash,
-  //   userAddress,
-  //   date: new Date(),
-  //   contractAddress: config.smartContractAddress,
-  // };
-  //
-  // const signer = new InMemorySigner(config.platformSigningPrivateKey);
-  // const signature = await signer.sign(JSON.stringify(message));
-  //
-  // const authOp = await contract.methodsObject.auth({
-  //   message,
-  //   signature,
-  // }).send();
-  //
-  // await authOp.confirmation(3);
+export async function getSmartContractAuthParameters(user: UserClient): Promise<{message: SmartContractAuthPayload, signature: string}> {
+  const message: SmartContractAuthPayload = {
+    date: String(Math.floor((new Date()).getTime() / 1000)),
+    emailHash: user.emailHash,
+    contractAddress: config.smartContractAddress,
+  };
+
+  const data: MichelsonData = {
+    "prim": "Pair",
+    "args": [
+      {
+        "string": message.contractAddress,
+      },
+      {
+        "int": message.date,
+      },
+      {
+        "string": message.emailHash,
+      },
+    ]
+  };
+
+  const type: MichelsonType = {
+    "prim": "pair",
+    "args": [
+      {
+        "prim": "address"
+      },
+      {
+        "prim": "int"
+      },
+      {
+        "prim": "string"
+      },
+    ]
+  };
+
+  const packedBytes = packDataBytes(data, type);
+
+  const signer = new InMemorySigner(config.platformSigningSecretKey);
+  const signed = await signer.sign(packedBytes.bytes);
+  const signature = signed.prefixSig;
+
+  return {
+    message,
+    signature,
+  }
 }
 
 export async function getTransactionLongPolling(hash: string, timeout: number) {

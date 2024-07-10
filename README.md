@@ -37,7 +37,7 @@ Here are the fields to specify in the login module configuration for this client
 
 ```
 redirect: http://localhost:3000/api/auth/callback/france-ioi
-user_attributes: ["primary_email","first_name","last_name"]
+user_attributes: ["login","primary_email","first_name","last_name"]
 verifiable_attributes: ["primary_email"]
 recommended_attributes: ["picture"]
 ```

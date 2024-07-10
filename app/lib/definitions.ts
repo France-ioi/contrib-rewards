@@ -1,5 +1,6 @@
 import {Prisma, User} from '@prisma/client'
 import type {DefaultSession} from "next-auth";
+import config from "@/app/lib/config";
 
 export type UserClient = {
   emailHash: string,
@@ -135,3 +136,8 @@ export const DonationFullIncludes = {
   },
 };
 
+export interface SmartContractAuthPayload {
+  date: string,
+  emailHash: string,
+  contractAddress: string,
+}

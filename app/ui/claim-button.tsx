@@ -1,11 +1,12 @@
 'use client';
 
 import {UiButton} from "@/app/ui/button";
-import {getTotalUnclaimedAmount, smartContractClaim} from "@/app/lib/smart_contract_client";
+import {getTotalUnclaimedAmount, smartContractAuth} from "@/app/lib/smart_contract_client";
 import {useEffect, useState} from "react";
 import {useSession} from "next-auth/react";
 import config from "@/app/lib/config";
 import {Spinner} from "@nextui-org/spinner";
+import {getSmartContractAuthParameters} from "@/app/lib/smart_contract_server";
 
 export default function ClaimButton() {
   const [loading, setLoading] = useState(false);
@@ -16,9 +17,12 @@ export default function ClaimButton() {
   const claim = async () => {
     setLoading(true);
     try {
-      await smartContractClaim(user!.emailHash);
+      const {message, signature} = await getSmartContractAuthParameters(user!);
+
+      //TODO: do this only if necessary (if emailHash doesn't exist)
+      await smartContractAuth(message, signature);
     } catch (e) {
-      console.error(e);
+      throw e;
     } finally {
       setLoading(false);
     }

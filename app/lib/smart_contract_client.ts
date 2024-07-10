@@ -1,8 +1,7 @@
 import {TezosToolkit} from '@taquito/taquito';
 import config from "@/app/lib/config";
 import {BeaconWallet} from "@taquito/beacon-wallet";
-import {RequestSignPayloadInput, SigningType} from "@airgap/beacon-dapp";
-import {stringToBytes} from "@taquito/utils";
+import {SmartContractAuthPayload} from "@/app/lib/definitions";
 
 const Tezos = new TezosToolkit(config.tezosRpc);
 const wallet = new BeaconWallet({
@@ -10,54 +9,53 @@ const wallet = new BeaconWallet({
   network: {
     type: config.tezosNetworkType,
   },
-  // disableDefaultEvents: false,
   enableMetrics: true,
 });
 Tezos.setWalletProvider(wallet);
 
-export async function smartContractClaim(emailHash: string) {
+export async function smartContractAuth(message: SmartContractAuthPayload, signature: string) {
   await connectWallet();
 
-  const contract = await Tezos.contract.at(config.smartContractAddress);
-  const authOp = await contract.methodsObject.auth(emailHash).send();
+  const contract = await Tezos.wallet.at(config.smartContractAddress);
+
+  const authParameters = {
+    message,
+    signature,
+  };
+
+  console.log({authParameters});
+
+  const estimateOp = contract.methodsObject.auth(authParameters).toTransferParams();
+  console.log('estimate op', estimateOp);
+  const {gasLimit, storageLimit, suggestedFeeMutez} = await Tezos.estimate.transfer(estimateOp);
+  console.log('send');
+
+  const authOp = await contract.methodsObject.auth(authParameters).send({
+    storageLimit,
+    gasLimit,
+    fee: suggestedFeeMutez,
+  });
+
+  console.log('after send');
+
   await authOp.confirmation(3);
 
-  const claimOp = await contract.methodsObject.claim().send();
-  await claimOp.confirmation(3);
+  // const claimOp = await contract.methodsObject.claim().send();
+  // await claimOp.confirmation(3);
 }
 
 export async function connectWallet(): Promise<string> {
-  await wallet!.requestPermissions();
+  const activeAccount = await wallet.client.getActiveAccount();
+  if (!activeAccount) {
+    await wallet!.requestPermissions();
+  }
 
   return await wallet!.getPKH();
 }
 
-export async function signWalletOwnership() {
-  const userAddress = await connectWallet();
-
-  const formattedInput: string = [
-    'Tezos Signed Message:',
-  ].join(' ');
-
-// The bytes to sign
-  const bytes = stringToBytes(formattedInput);
-  const bytesLength = (bytes.length / 2).toString(16);
-  const addPadding = `00000000${bytesLength}`;
-  const paddedBytesLength = addPadding.slice(addPadding.length - 8);
-  const payloadBytes = '05' + '01' + paddedBytesLength + bytes;
-
-  const payload: RequestSignPayloadInput = {
-    signingType: SigningType.MICHELINE,
-    payload: payloadBytes,
-    sourceAddress: userAddress,
-  };
-
-  const signedPayload = await wallet.client.requestSignPayload(payload);
-
-  return signedPayload.signature;
-}
-
 export async function smartContractDonate(mergeId: string, totalAmount: number, recipients: {[recipientEmailHash: string]: number}) {
+  await connectWallet();
+
   const donateParams = {
     mergeID: mergeId,
     recipients: Object.entries(recipients).map(([recipientEmailHash, amount]) => ({
@@ -89,10 +87,11 @@ export async function getTotalUnclaimedAmount(emailHash: string) {
   try {
     const contract = await Tezos.contract.at(config.smartContractAddress);
 
-
-    return await contract.contractViews.getEmailHashAmount(emailHash).executeView({
+    const result = await contract.contractViews.getEmailHashAmount(emailHash).executeView({
       viewCaller: config.smartContractAddress,
     });
+
+    return result.amount.toNumber() / 1000000;
   } catch (e: unknown) {
     if ('Assert failure: self.data.amountsToClaim.contains(params)' !== (e as {failWith: {string: string}}).failWith.string) {
       console.error(e);

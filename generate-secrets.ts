@@ -9,7 +9,7 @@ async function generateSecrets() {
   const nextAuthSecret = (await exec('openssl rand -base64 32')).stdout.trim();
   const signingKey = await generateTaquitoSigningKey();
   console.log(`NEXTAUTH_SECRET='${nextAuthSecret}'
-PLATFORM_SIGNING_PRIVATE_KEY=${signingKey.secretKey}
+PLATFORM_SIGNING_SECRET_KEY=${signingKey.secretKey}
 PLATFORM_SIGNING_PUBLIC_KEY=${signingKey.publicKey}`);
 }
 

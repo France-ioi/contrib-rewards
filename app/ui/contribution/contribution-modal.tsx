@@ -2,7 +2,7 @@ import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
 import {DonationFull, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation, getRecipientEmailHashes} from "@/app/lib/data/donations";
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
 import {useSession} from "next-auth/react";
@@ -49,6 +49,8 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
   const [amountSplits, setAmountSplits] = useState<{[authorIndex: string]: number}>({});
   const [donation, setDonation] = useState<DonationFull|null|undefined>(initDonation);
   const [review, setReview] = useState<string|null|undefined>(initReview);
+  const [donatingStatus, setDonatingStatus] = useState<string|null>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setChangingAmount(null === amount);
@@ -67,7 +69,14 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     }
 
     setLoading(true);
-    //TODO: add steps and error handling
+    setDonatingStatus('Preparing transaction');
+    if (ref.current) {
+      setTimeout(() => {
+        ref.current!.scrollTo({
+          top: 999999,
+        });
+      });
+    }
 
     try {
       const emailHashes = await getRecipientEmailHashes(mergeRequest.authors.map(author => author.authorId));
@@ -78,6 +87,8 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
       }
 
       const operationHash = await smartContractDonate(mergeRequest.id, localAmount, remappedAuthorSplits);
+
+      setDonatingStatus('Waiting for transaction to be confirmed');
 
       const {donation, error} = await createDonation(operationHash);
       if (error) {
@@ -92,6 +103,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
       throw e;
     } finally {
       setLoading(false);
+      setDonatingStatus(null);
     }
   };
 
@@ -179,7 +191,10 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
       <ModalContent>
         {() => (
           <>
-            <ModalBody>
+            <div
+              className="flex flex-1 flex-col gap-3 overflow-y-auto px-6 py-2"
+              ref={ref}
+            >
               {donation ?
                 (review ?
                     <ShareReview
@@ -205,7 +220,8 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                     </div>
                     :
                     <div className="flex justify-center">
-                      <div className="w-[350px] border-2 border-container-grey rounded-full mb-6 px-6 py-4 flex gap-4 items-center font-bold text-project-focus">
+                      <div
+                        className="w-[350px] border-2 border-container-grey rounded-full mb-6 px-6 py-4 flex gap-4 items-center font-bold text-project-focus">
                         <input
                           type="number"
                           className="w-full grow text-6xl outline-none"
@@ -304,7 +320,9 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                               -
                             </div>
                             <div className="grow h-full rounded-full bg-[#0000001A] shadow-progress-split">
-                              <div className="rounded-full h-full bg-[#0F61FF] text-white font-bold flex items-center px-4" style={{width: `${12 + Math.round(donationSplits[authorIndex] * 0.88)}%`}}>
+                              <div
+                                className="rounded-full h-full bg-[#0F61FF] text-white font-bold flex items-center px-4"
+                                style={{width: `${12 + Math.round(donationSplits[authorIndex] * 0.88)}%`}}>
                                 {donationSplits[authorIndex]}%
                               </div>
                             </div>
@@ -314,9 +332,10 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                             >
                               +
                             </div>
-                            {null !== localAmount && <div className="flex items-center justify-center font-bold min-w-[50px]">
-                              {amountSplits[authorIndex]}{config.currency}
-                            </div>}
+                            {null !== localAmount &&
+                              <div className="flex items-center justify-center font-bold min-w-[50px]">
+                                {amountSplits[authorIndex]}{config.currency}
+                              </div>}
                           </div>
                         </div>
                       )}
@@ -371,9 +390,13 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                       Confirm and send
                     </UiButton>
                   </div>
+
+                  {null !== donatingStatus && <div className="text-center text-light">
+                    {donatingStatus}...
+                  </div>}
                 </>
               }
-            </ModalBody>
+            </div>
           </>
         )}
       </ModalContent>
