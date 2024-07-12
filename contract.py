@@ -75,6 +75,7 @@ def test():
     bob = sp.test_account("Bob")
     carl = sp.test_account("Carl")
 
+    # Replace this key by the value of the environment variable PLATFORM_SIGNING_PUBLIC_KEY you get by running `yarn generate-secrets`
     publicKey = sp.key("edpkuWKyFNMjuUo5nCYtoWGkNLwfLRcCyJ59TTxrzQYPECmdoAW6Do")
 
     scenario = sp.test_scenario("RewardContributions", main)
