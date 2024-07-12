@@ -219,6 +219,10 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                   </UiButton>
                 )}
               </div>
+
+              <p className="mt-4 text-sm text-light">
+                To make your review visible by everyone, donate {leadAmount}{config.currency} or more to take the lead on this merge.
+              </p>
             </div>
           </div>
         </div>
