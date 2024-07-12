@@ -1,6 +1,5 @@
 import {Prisma, User} from '@prisma/client'
 import type {DefaultSession} from "next-auth";
-import config from "@/app/lib/config";
 
 export type UserClient = {
   emailHash: string,
@@ -73,10 +72,10 @@ export type DonationFull = Prisma.DonationGetPayload<{
               },
             },
           },
-          select: {
-            amount: true,
-            donorId: true,
-          },
+          // select: {
+          //   amount: true,
+          //   donorId: true,
+          // },
           orderBy: {
             amount: 'desc',
           },
@@ -95,7 +94,9 @@ export type DonationFull = Prisma.DonationGetPayload<{
       },
     },
   },
-}>
+}> & {
+  review?: string|null,
+}
 
 export const DonationFullIncludes = {
   mergeRequest: {
@@ -117,10 +118,18 @@ export const DonationFullIncludes = {
         },
       },
       donations: {
-        select: {
-          amount: true,
-          donorId: true,
+        include: {
+          donor: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
         },
+        // select: {
+        //   amount: true,
+        //   donorId: true,
+        // },
       },
     },
   },

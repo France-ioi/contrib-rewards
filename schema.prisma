@@ -8,20 +8,21 @@ datasource db {
 }
 
 model User {
-  id                     String    @id @default(cuid())
-  name                   String?
-  login                  String?
-  email                  String    @unique
-  image                  String?
-  Session                Session[]
-  Account                Account?
-  Donation               Donation[]
-  DonationSplit          DonationSplit[]
-  MergeRequestAuthor     MergeRequestAuthor[]
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-  MergeRequestTopDonor   MergeRequest[]
-  salt                   String?
+  id                   String               @id @default(cuid())
+  name                 String?
+  login                String?
+  email                String               @unique
+  image                String?
+  Session              Session[]
+  Account              Account?
+  Donation             Donation[]
+  DonationSplit        DonationSplit[]
+  MergeRequestAuthor   MergeRequestAuthor[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  MergeRequestTopDonor MergeRequest[]
+  salt                 String?
+  DonationReview       DonationReview[]
 }
 
 model Account {
@@ -69,49 +70,49 @@ model VerificationToken {
 }
 
 model Donation {
-  id                 String              @id @default(cuid())
-  donorId            String
-  mergeRequestId     String
-  review             String?             @db.Text
-  createdAt          DateTime            @default(now())
-  donor              User                @relation(fields: [donorId], references: [id])
-  mergeRequest       MergeRequest        @relation(fields: [mergeRequestId], references: [id])
-  amount             Decimal             @db.Decimal(18,8)
-  splits             DonationSplit[]
-  operationHash      String              @unique
+  id             String          @id @default(cuid())
+  donorId        String
+  mergeRequestId String
+  createdAt      DateTime        @default(now())
+  donor          User            @relation(fields: [donorId], references: [id])
+  mergeRequest   MergeRequest    @relation(fields: [mergeRequestId], references: [id])
+  amount         Decimal         @db.Decimal(18, 8)
+  splits         DonationSplit[]
+  operationHash  String          @unique
 
   @@index([donorId])
 }
 
 model DonationSplit {
-  id           String   @id @default(cuid())
-  donationId   String
-  recipientId  String
-  amount       Decimal  @db.Decimal(18,8)
-  donation     Donation @relation(fields: [donationId], references: [id])
-  recipient    User     @relation(fields: [recipientId], references: [id])
+  id          String   @id @default(cuid())
+  donationId  String
+  recipientId String
+  amount      Decimal  @db.Decimal(18, 8)
+  donation    Donation @relation(fields: [donationId], references: [id])
+  recipient   User     @relation(fields: [recipientId], references: [id])
 
+  @@unique([donationId, recipientId])
   @@index([donationId])
   @@index([recipientId])
-  @@unique([donationId, recipientId])
 }
 
 model MergeRequest {
-  id               String                 @id @default(cuid())
-  repositoryId     String                 @unique
-  title            String
-  mergedAt         DateTime
-  linesAdded       Int
-  linesRemoved     Int
-  filesChanged     Int
-  sectionsChanged  Int
-  link             String
-  bestDonorId      String?
-  bestDonorAmount  Decimal?               @db.Decimal(18,8)
-  bestDonorReview  String?                @db.Text
-  authors          MergeRequestAuthor[]
-  donations        Donation[]
-  bestDonor        User?                  @relation(fields: [bestDonorId], references: [id])
+  id              String               @id @default(cuid())
+  repositoryId    String               @unique
+  title           String
+  mergedAt        DateTime
+  linesAdded      Int
+  linesRemoved    Int
+  filesChanged    Int
+  sectionsChanged Int
+  link            String
+  bestDonorId     String?
+  bestDonorAmount Decimal?             @db.Decimal(18, 8)
+  bestDonorReview String?              @db.Text
+  authors         MergeRequestAuthor[]
+  donations       Donation[]
+  bestDonor       User?                @relation(fields: [bestDonorId], references: [id])
+  DonationReview  DonationReview[]
 }
 
 model MergeRequestAuthor {
@@ -126,4 +127,15 @@ model MergeRequestAuthor {
   mergeRequest    MergeRequest @relation(fields: [mergeRequestId], references: [id])
 
   @@unique([mergeRequestId, authorId])
+}
+
+model DonationReview {
+  id             String       @id @default(cuid())
+  mergeRequestId String
+  donorId        String
+  donor          User         @relation(fields: [donorId], references: [id])
+  mergeRequest   MergeRequest @relation(fields: [mergeRequestId], references: [id])
+  review         String?      @db.Text
+
+  @@unique([mergeRequestId, donorId])
 }

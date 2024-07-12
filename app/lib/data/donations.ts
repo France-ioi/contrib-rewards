@@ -11,7 +11,7 @@ import {hashEmail} from "@/app/lib/user";
 import {getTransactionLongPolling} from "@/app/lib/smart_contract_server";
 import config from "@/app/lib/config";
 
-export async function createDonation(operationHash: string) {
+export async function createDonation(operationHash: string): Promise<{error?: string, donation?: DonationFull}> {
   const session = await auth();
   const user = session?.user;
   if (!user) {
@@ -90,7 +90,7 @@ export async function createDonation(operationHash: string) {
     return {error: "This donation has already been registered"};
   }
 
-  const donation = await prisma.donation.create({
+  const donation: DonationFull = await prisma.donation.create({
     data: {
       mergeRequestId: mergeRequestId,
       amount: donationTotalAmount,
@@ -102,6 +102,17 @@ export async function createDonation(operationHash: string) {
     },
     include: DonationFullIncludes,
   });
+
+  const donationReview = await prisma.donationReview.findFirst({
+    where: {
+      donorId: user.id,
+      mergeRequestId: mergeRequestId,
+    },
+  });
+
+  if (donationReview) {
+    donation.review = donationReview.review;
+  }
 
   await recomputeMergeRequestBestDonation(mergeRequestId);
 
@@ -130,36 +141,39 @@ export async function recomputeMergeRequestBestDonation(mergeRequestId: string) 
 
   let bestDonorAmount: number|null = null;
   let bestDonorId: string|null = null;
-  let bestDonorReview: string|null = null;
   for (let donations of Object.values(donationsByDonor)) {
     let totalAmount = 0;
     let donorId: string|null = null;
-    let donorReview: string|null = null;
     for (let donation of donations) {
       donorId = donation.donorId;
       totalAmount += donation.amount.toNumber();
-      if (donation.review) {
-        donorReview = donation.review;
-      }
     }
 
     if (null === bestDonorAmount || totalAmount > bestDonorAmount) {
       bestDonorAmount = totalAmount;
       bestDonorId = donorId;
-      bestDonorReview = donorReview;
     }
   }
 
-  await prisma.mergeRequest.update({
-    where: {
-      id: mergeRequestId,
-    },
-    data: {
-      bestDonorId,
-      bestDonorAmount,
-      bestDonorReview,
-    },
-  });
+  if (null !== bestDonorId) {
+    const donationReview = await prisma.donationReview.findFirst({
+      where: {
+        donorId: bestDonorId,
+        mergeRequestId: mergeRequestId,
+      },
+    });
+
+    await prisma.mergeRequest.update({
+      where: {
+        id: mergeRequestId,
+      },
+      data: {
+        bestDonorId,
+        bestDonorAmount,
+        bestDonorReview: donationReview?.review,
+      },
+    });
+  }
 }
 
 export async function fetchDonations(user: User): Promise<DonationFull[]> {
@@ -173,9 +187,33 @@ export async function fetchDonations(user: User): Promise<DonationFull[]> {
     },
   });
 
-  transformDecimalsToNumbers(donations);
+  const mergeRequestIds = [...new Set(donations.map(donation => donation.mergeRequestId))];
 
-  return donations;
+  const donationReviews = await prisma.donationReview.findMany({
+    where: {
+      donorId: user.id,
+      mergeRequestId: {
+        in: mergeRequestIds,
+      },
+    },
+  });
+
+  const reviewByMergeRequestId: {[mergeRequestId: string]: string|null} = {};
+  for (let donationReview of donationReviews) {
+    reviewByMergeRequestId[donationReview.mergeRequestId] = donationReview.review;
+  }
+
+  let resultDonations: DonationFull[] = [];
+  for (let donation of donations) {
+    resultDonations.push({
+      ...donation,
+      review: reviewByMergeRequestId[donation.mergeRequestId] ?? null,
+    });
+  }
+
+  transformDecimalsToNumbers(resultDonations);
+
+  return resultDonations;
 }
 
 export async function getDonationStats(): Promise<{amount: number}> {
@@ -268,14 +306,31 @@ export async function submitReview(donationId: string, review: string) {
     throw new Error("You are not the author of this donation");
   }
 
-  await prisma.donation.update({
+  const donationReview = await prisma.donationReview.findFirst({
     where: {
-      id: donationId,
+      donorId: donation.donorId,
+      mergeRequestId: donation.mergeRequestId,
     },
-    data: {
-      review,
-    }
   });
+
+  if (null !== donationReview) {
+    await prisma.donationReview.update({
+      data: {
+        review,
+      },
+      where: {
+        id: donationReview.id,
+      },
+    });
+  } else {
+    await prisma.donationReview.create({
+      data: {
+        donorId: donation.donorId,
+        mergeRequestId: donation.mergeRequestId,
+        review,
+      },
+    })
+  }
 
   await recomputeMergeRequestBestDonation(donation.mergeRequestId);
 }

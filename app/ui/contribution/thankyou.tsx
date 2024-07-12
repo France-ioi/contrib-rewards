@@ -7,7 +7,7 @@ import {UiButton} from "@/app/ui/button";
 import {submitReview} from "@/app/lib/data/donations";
 
 export default function ThankYou({donation, onSentReview}: {donation: DonationFull, onSentReview: (review: string) => void}) {
-  const [review, setReview] = useState("");
+  const [review, setReview] = useState(donation.review ?? '');
 
   const {data: session} = useSession();
   const user = session?.user!;
@@ -30,7 +30,10 @@ export default function ThankYou({donation, onSentReview}: {donation: DonationFu
       </p>
 
       <p className="text-[#22272E] text-xl md:text-2xl mt-6">
-        Before you go, please leave a review on the merge below!
+        {donation.review ?
+          "You can modify your review on the merge:" :
+          "Before you go, please leave a review on the merge below!"
+        }
       </p>
 
       <div className="mt-4 relative">

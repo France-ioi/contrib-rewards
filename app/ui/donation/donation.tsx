@@ -56,7 +56,7 @@ export default function Donation({donation}: DonationProps) {
 
     setModalOpen(true);
     setInitDonation(donation);
-    setInitReview(donation.review);
+    setInitReview(donation.review ?? null);
   };
 
   return (

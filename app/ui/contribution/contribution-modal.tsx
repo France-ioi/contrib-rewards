@@ -177,7 +177,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
   const onSentReview = (review: string) => {
     setReview(review);
     onDonated();
-  }
+  };
 
   return (
     <Modal
