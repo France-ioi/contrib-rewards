@@ -1,4 +1,4 @@
-import {Modal, ModalContent, ModalBody} from "@nextui-org/react";
+import {Modal, ModalContent} from "@nextui-org/react";
 import {DonationFull, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation, getRecipientEmailHashes} from "@/app/lib/data/donations";
@@ -44,6 +44,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
   }
 
   const [localAmount, setLocalAmount] = useState<number|null>(amount);
+  const [localAmountString, setLocalAmountString] = useState<string|null>(String(amount));
   const [changingAmount, setChangingAmount] = useState(false);
   const [donationSplits, setDonationSplits] = useState<{[authorIndex: string]: number}>({});
   const [amountSplits, setAmountSplits] = useState<{[authorIndex: string]: number}>({});
@@ -52,9 +53,19 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
   const [donatingStatus, setDonatingStatus] = useState<string|null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setChangingAmount(null === amount);
+  const changeLocalAmount = (amount: number|null) => {
     setLocalAmount(amount);
+    setLocalAmountString(String(amount));
+  };
+
+  const changeLocalAmountFromString = (amount: string|null) => {
+    setLocalAmount(Number(amount));
+    setLocalAmountString(amount);
+  };
+
+  useEffect(() => {
+    changeLocalAmount(amount);
+    setChangingAmount(null === amount);
     splitBy(SplitMethod.Equal);
   }, [open, amount, mergeRequest.authors.length]);
 
@@ -108,7 +119,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
   };
 
   const takeLeadAmount = () => {
-    setLocalAmount(leadAmount);
+    changeLocalAmount(leadAmount);
     setChangingAmount(false);
   };
 
@@ -126,7 +137,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     const methods: Record<SplitMethod, ((author: MergeRequestAuthor) => number)> = {
       [SplitMethod.LinesAdded]: author => author.linesAdded,
       [SplitMethod.LinesRemoved]: author => author.linesRemoved,
-      [SplitMethod.Equal]: author => 1,
+      [SplitMethod.Equal]: () => 1,
     };
 
     let sumValues = 0;
@@ -179,6 +190,27 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     onDonated();
   };
 
+  let confirmation: {message: string, isError?: boolean}|null = null;
+  if (null !== localAmount) {
+    if (100 !== sumDonationSplits) {
+      confirmation = {
+        message: `You must split 100% of the total amount. You have currently allocated ${sumDonationSplits}%.`,
+        isError: true,
+      };
+    } else {
+      if (localAmount < 0) {
+        confirmation = {
+          message: `You must enter a positive amount.`,
+          isError: true,
+        };
+      } else if (localAmount > 0) {
+        confirmation = {
+          message: `You are about to transfer a total of ${localAmount}${config.currency} to the merge author${splitNeeded ? 's' : ''}, as shown above.`,
+        };
+      }
+    }
+  }
+
   return (
     <Modal
       size="2xl"
@@ -225,8 +257,8 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                         <input
                           type="number"
                           className="w-full grow text-6xl outline-none"
-                          value={String(localAmount)}
-                          onChange={(e) => setLocalAmount(Math.max(0.01, Number(e.target.value)))}
+                          value={localAmountString ?? ''}
+                          onChange={(e) => changeLocalAmountFromString(e.target.value)}
                         />
                         <div className="text-5xl">{config.currency}</div>
                       </div>
@@ -367,16 +399,11 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                     </div>
                   </>}
 
-                  {100 === sumDonationSplits ?
-                    <p className="text-light mt-6">
-                      You are about to transfer a total of {localAmount}{config.currency} to the merge
-                      author{splitNeeded ? 's' : ''}, as shown
-                      above.
-                    </p>
-                    :
-                    <p className="text-[#FF120F] mt-6">
-                      You must split 100% of the total amount. You have currently allocated {sumDonationSplits}%.
-                    </p>
+
+                  {null !== confirmation &&
+                      <p className={`${confirmation.isError ? "text-[#FF120F]" : "text-light"} mt-6 text-center`}>
+                        {confirmation.message}
+                      </p>
                   }
 
                   <div className="text-center mt-2">
@@ -385,7 +412,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
                       className="w-full md:w-min px-8"
                       onPress={confirm}
                       isLoading={loading}
-                      isDisabled={100 !== sumDonationSplits || null === localAmount}
+                      isDisabled={100 !== sumDonationSplits || null === localAmount || localAmount <= 0}
                     >
                       Confirm and send
                     </UiButton>
