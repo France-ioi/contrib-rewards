@@ -61,6 +61,11 @@ def main():
             assert self.data.amountsToClaim.contains(emailHash)
             return self.data.amountsToClaim[emailHash]
 
+        @sp.onchain_view()
+        def hasAuthed(self, address):
+            sp.cast(address, sp.address)
+            return self.data.hashedEmails.contains(address)
+
 # Tests
 @sp.add_test()
 def test():
@@ -86,10 +91,22 @@ def test():
     donation2 = sp.record(amount = sp.tez(15), recipientEmailHash = "#author2")
     c1.donate(mergeID = "123", recipients = [donation1, donation2], _sender = bob, _amount = sp.tez(25))
 
+    scenario.verify(c1.data.idDonation == 2)
+    scenario.verify(c1.data.amountsToClaim["#author1"].amount == sp.tez(10))
+    scenario.verify(c1.data.amountsToClaim["#author2"].amount == sp.tez(15))
+    scenario.verify(c1.getEmailHashAmount("#author1").amount == sp.tez(10))
+
+    scenario.verify(c1.hasAuthed(bob.address) == False)
+
     message = sp.record(contractAddress = c1.address,
                         date = sp.timestamp(0),
                         emailHash = "#author1")
     signature = sp.make_signature(platform.secret_key, sp.pack(message))
     c1.auth(message = message, signature = signature, _sender = bob)
 
+    scenario.verify(c1.hasAuthed(bob.address) == True)
+    scenario.verify(c1.data.hashedEmails.contains(bob.address))
+
     c1.claim(_sender = bob)
+
+    scenario.verify(c1.data.amountsToClaim["#author1"].amount == sp.tez(0))

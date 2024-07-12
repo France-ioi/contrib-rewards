@@ -1,12 +1,20 @@
 'use client';
 
 import {UiButton} from "@/app/ui/button";
-import {getTotalUnclaimedAmount, smartContractAuth} from "@/app/lib/smart_contract_client";
+import {
+  checkIfUserHasAuthed,
+  getTotalUnclaimedAmount,
+  smartContractAuth,
+  smartContractClaim,
+  waitThatUserHasClaimed,
+  waitThatUserIsAuthed,
+} from "@/app/lib/smart_contract_client";
 import {useEffect, useState} from "react";
 import {useSession} from "next-auth/react";
 import config from "@/app/lib/config";
 import {Spinner} from "@nextui-org/spinner";
 import {getSmartContractAuthParameters} from "@/app/lib/smart_contract_server";
+import {useRouter} from "next/navigation";
 
 export default function ClaimButton() {
   const [loading, setLoading] = useState(false);
@@ -17,10 +25,21 @@ export default function ClaimButton() {
   const claim = async () => {
     setLoading(true);
     try {
-      const {message, signature} = await getSmartContractAuthParameters(user!);
+      const hasUserAuthed = await checkIfUserHasAuthed();
 
-      //TODO: do this only if necessary (if emailHash doesn't exist)
-      await smartContractAuth(message, signature);
+      if (!hasUserAuthed) {
+        const {message, signature} = await getSmartContractAuthParameters(user!);
+        await smartContractAuth(message, signature);
+        const result = await waitThatUserIsAuthed(15*1000);
+        if (!result) {
+          throw new Error("Auth hasn't worked");
+        }
+      }
+
+      await smartContractClaim();
+      await waitThatUserHasClaimed(user!.emailHash, 15*1000);
+
+      setTotalUnclaimedAmount(0);
     } catch (e) {
       throw e;
     } finally {
