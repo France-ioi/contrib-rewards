@@ -22,7 +22,7 @@ export default async function HeaderStats() {
         <h1 className="basis-1/2 bg-clip-text bg-gradient-to-b text-transparent from-[#0F61FF] to-[#A32FB5] text-3xl md:text-6xl font-medium leading-9 md:leading-[70px]">
           We have raised {donationStats.amount} out of {config.donationTarget}{config.currency} target {config.donationPeriodLabel}.
         </h1>
-        <div className="basis-1/2 flex items-center justify-center">
+        <div className="basis-1/2 flex items-center justify-center w-full">
           <div className="max-w-[500px] w-full">
             <div className="rounded-full bg-actions-hover relative h-[50px] md:h-[70px]">
               <div
