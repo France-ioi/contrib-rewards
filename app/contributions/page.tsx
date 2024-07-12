@@ -8,9 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default async function ContributionsPage() {
-  const contributions = await fetchMergeRequests();
-
   const period = getCurrentPeriodData();
+
+  const contributions = await fetchMergeRequests(null, period.periodStart);
 
   const contributionsBeforePeriod  = contributions
     .filter(contribution => contribution.mergedAt < period.periodStart);

@@ -50,16 +50,16 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
     }
   }
 
-  async getMergeRequests(params: {mergedAfter: Date|null}): Promise<Prisma.MergeRequestCreateInput[]> {
+  async getMergeRequests(params: {limit?: number|null, mergedAfter?: Date|null}): Promise<Prisma.MergeRequestCreateInput[]> {
     try {
       const headers = {
         'content-type': 'application/json',
       };
       const requestBody = {
-        query: `query getMergeRequests($fullPath: ID!, $mergedAfter: Time) {
+        query: `query getMergeRequests($fullPath: ID!, $mergedAfter: Time, $limit: Int) {
   project(fullPath: $fullPath) {
     id
-    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: 20, mergedAfter: $mergedAfter) {
+    mergeRequests(state: merged, sort: MERGED_AT_DESC, first: $limit, mergedAfter: $mergedAfter) {
       nodes {
         id
         iid
@@ -94,6 +94,7 @@ export class GitlabFetcher extends AbstractRepositoryFetcher {
 }`,
         variables: {
           fullPath: config.repositoryPath,
+          limit: params.limit,
           mergedAfter: params.mergedAfter?.toISOString().split('T')[0],
         }
       };

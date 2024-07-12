@@ -145,6 +145,35 @@ export const DonationFullIncludes = {
   },
 };
 
+export const MergeRequestWithAuthorsIncludes = {
+  authors: {
+    include: {
+      author: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    }
+  },
+  donations: {
+    include: {
+      donor: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    },
+  },
+  bestDonor: {
+    select: {
+      name: true,
+      image: true,
+    },
+  },
+};
+
 export interface SmartContractAuthPayload {
   date: string,
   emailHash: string,

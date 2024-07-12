@@ -3,8 +3,10 @@ import prisma, {transformDecimalsToNumbers} from "@/app/lib/db";
 import {Prisma} from "@prisma/client";
 import {
   MergeRequestBackingData,
-  MergeRequestWithAuthorsAndBackingData
+  MergeRequestWithAuthorsAndBackingData,
+  MergeRequestWithAuthorsIncludes,
 } from "@/app/lib/definitions";
+import config from "@/app/lib/config";
 
 export async function fetchMergeRequests(authorId: string|null = null, mergedAfter: Date|null = null): Promise<MergeRequestWithAuthorsAndBackingData[]> {
   const gitlabFetcher = new GitlabFetcher();
@@ -19,7 +21,10 @@ export async function fetchMergeRequests(authorId: string|null = null, mergedAft
     });
 
     if (!latestMergeRequestInBase.length || latestMergeRequestID !== latestMergeRequestInBase[0].repositoryId) {
-      const mergeRequests = await gitlabFetcher.getMergeRequests({mergedAfter});
+      let mergeRequests = await gitlabFetcher.getMergeRequests({mergedAfter});
+      if (mergeRequests.length < config.contributionsDisplayLastCount) {
+        mergeRequests = await gitlabFetcher.getMergeRequests({limit: config.contributionsDisplayLastCount});
+      }
       await syncMergeRequestsWithDatabase(mergeRequests);
     }
   } catch (e) {
@@ -27,54 +32,7 @@ export async function fetchMergeRequests(authorId: string|null = null, mergedAft
     console.error(e);
   }
 
-  const mergeRequests = await prisma.mergeRequest.findMany({
-    where: {
-      ...(authorId ? {
-        authors: {
-          some: {
-            authorId: authorId,
-          }
-        }
-      } : {}),
-      // ...(mergedAfter ? {
-      //   mergedAt: {
-      //     gte: mergedAfter,
-      //   },
-      // } : {}),
-    },
-    include: {
-      authors: {
-        include: {
-          author: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        }
-      },
-      donations: {
-        include: {
-          donor: {
-            select: {
-              name: true,
-              image: true,
-            },
-          },
-        },
-      },
-      bestDonor: {
-        select: {
-          name: true,
-          image: true,
-        },
-      },
-    },
-    orderBy: {
-      mergedAt: 'desc',
-    },
-    take: 20,
-  });
+  const mergeRequests = await getMergeRequestsFromDatabase(authorId, mergedAfter);
 
   const mergeRequestIds = mergeRequests.map(mergeRequest => mergeRequest.id);
 
@@ -116,21 +74,67 @@ export async function fetchMergeRequests(authorId: string|null = null, mergedAft
 }
 
 async function syncMergeRequestsWithDatabase(mergeRequests: Prisma.MergeRequestCreateInput[]) {
-  for (let mergeRequest of mergeRequests) {
-    let mergeRequestDb = await prisma.mergeRequest.findUnique({
-      where: {
-        repositoryId: mergeRequest.repositoryId,
-      },
-    });
+  const mergeRequestDbIds = (await prisma.mergeRequest.findMany({
+    select: {
+      repositoryId: true,
+    },
+  })).map(mergeRequest => mergeRequest.repositoryId);
 
-    if (null !== mergeRequestDb) {
-      // Don't reimport merge request. If necessary, we could update it here
-      continue;
-    }
+  const filteredMergeRequests = mergeRequests.filter(mergeRequest => {
+    return -1 === mergeRequestDbIds.indexOf(mergeRequest.repositoryId);
+  });
 
-    mergeRequestDb = await prisma.mergeRequest.create({
+  for (let mergeRequest of filteredMergeRequests) {
+    await prisma.mergeRequest.create({
       data: mergeRequest,
     });
   }
 }
 
+async function getMergeRequestsFromDatabase(authorId: string|null = null, mergedAfter: Date|null = null) {
+  const mergeRequests = await prisma.mergeRequest.findMany({
+    where: {
+      ...(authorId ? {
+        authors: {
+          some: {
+            authorId: authorId,
+          }
+        }
+      } : {}),
+      ...(mergedAfter ? {
+        mergedAt: {
+          gte: mergedAfter,
+        },
+      } : {}),
+    },
+    include: MergeRequestWithAuthorsIncludes,
+    orderBy: {
+      mergedAt: 'desc',
+    },
+    take: null === authorId ? config.contributionsDisplayLastCount : undefined,
+  });
+
+  if (null === authorId && mergeRequests.length < config.contributionsDisplayLastCount) {
+    const mergeRequestsIds = mergeRequests.map(mergeRequest => mergeRequest.id);
+
+    const otherMergeRequests = await prisma.mergeRequest.findMany({
+      where: {
+        id: {
+          notIn: mergeRequestsIds,
+        }
+      },
+      include: MergeRequestWithAuthorsIncludes,
+      orderBy: {
+        mergedAt: 'desc',
+      },
+      take: config.contributionsDisplayLastCount - mergeRequests.length,
+    });
+
+    return [
+      ...mergeRequests,
+      ...otherMergeRequests,
+    ];
+  }
+
+  return mergeRequests;
+}
