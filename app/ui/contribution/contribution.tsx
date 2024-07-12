@@ -190,7 +190,7 @@ export default function Contribution({mergeRequest}: ContributionProps) {
                   {mergeRequest.bestDonorAmount?.toString()}<span className="text-xl">{config.currency}</span>
                 </p>
 
-                {mergeRequest.bestDonorReview && <div className="text-light break-words">
+                {mergeRequest.bestDonorReview && <div className="text-light break-words whitespace-pre-wrap">
                   “{mergeRequest.bestDonorReview}”
                 </div>}
               </div>
