@@ -21,8 +21,8 @@ Use this command to generate the secrets and copy them along to the `.env.local`
 yarn generate-secrets
 ```
 
-Additionally, `OAUTH_SECRET_ID` will be given by a Login Module admin,
-it is the "Secret" field in the OAuth client page (cf below).
+Additionally, `NEXT_PUBLIC_OAUTH_CLIENT_ID` and `OAUTH_SECRET_ID` will be given
+by a Login Module admin, they are in the OAuth client page of the Login Module (cf below).
 And `NEXT_PUBLIC_TEZOS_SMART_CONTRACT_ADDRESS` is the address of the
 Tezos smart contract (cf below).
 
