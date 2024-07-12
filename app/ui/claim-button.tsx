@@ -27,6 +27,8 @@ export default function ClaimButton() {
     try {
       const hasUserAuthed = await checkIfUserHasAuthed();
 
+      // TODO: handle errors for this endpoint and the other
+
       if (!hasUserAuthed) {
         const {message, signature} = await getSmartContractAuthParameters(user!);
         await smartContractAuth(message, signature);

@@ -130,7 +130,7 @@ export async function waitThatUserIsAuthed(timeout: number): Promise<boolean> {
 
   for (let iterationsCount = 0; iterationsCount < Math.floor(timeout/interval); iterationsCount++) {
     const isAuthed = await checkIfUserHasAuthed();
-    if (!isAuthed) {
+    if (isAuthed) {
       return true;
     }
 
