@@ -36,11 +36,11 @@ export async function fetchMergeRequests(authorId: string|null = null, mergedAft
           }
         }
       } : {}),
-      ...(mergedAfter ? {
-        mergedAt: {
-          gte: mergedAfter,
-        },
-      } : {}),
+      // ...(mergedAfter ? {
+      //   mergedAt: {
+      //     gte: mergedAfter,
+      //   },
+      // } : {}),
     },
     include: {
       authors: {
@@ -73,6 +73,7 @@ export async function fetchMergeRequests(authorId: string|null = null, mergedAft
     orderBy: {
       mergedAt: 'desc',
     },
+    take: 20,
   });
 
   const mergeRequestIds = mergeRequests.map(mergeRequest => mergeRequest.id);
