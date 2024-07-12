@@ -38,6 +38,17 @@ export default async function AuthorPage() {
   }
 
   const contributions = await fetchMergeRequests(user.id);
+
+  if (!contributions?.length) {
+    return (
+      <main className="container mx-auto px-4">
+        <div className="text-center text-xl text-project-focus mt-12">
+          You are currently not the author of any merge.
+        </div>
+      </main>
+    );
+  }
+
   const authorStats = await getAuthorStats(user);
 
   return (

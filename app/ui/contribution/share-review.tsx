@@ -126,7 +126,7 @@ export default function ShareReview({donation, review}: {donation: DonationFull,
         </div>
       </div>
 
-      <div className="flex gap-2 items-center justify-center mt-8">
+      <div className="flex flex-col md:flex-row gap-2 items-center justify-center mt-8">
         <UiButton
           color="primary"
           className="w-full rounded-full bg-[#0F61FF] font-medium"
