@@ -63,17 +63,6 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     setLocalAmountString(amount);
   };
 
-  useEffect(() => {
-    changeLocalAmount(amount);
-    setChangingAmount(null === amount);
-    splitBy(SplitMethod.Equal);
-  }, [open, amount, mergeRequest.authors.length]);
-
-  useEffect(() => {
-    setDonation(initDonation);
-    setReview(initReview);
-  }, [initDonation, initReview, open]);
-
   const confirm = async () => {
     if (null === localAmount || 100 !== sumDonationSplits) {
       return;
@@ -181,6 +170,17 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
 
     setAmountSplits(splits);
   }, [localAmount, donationSplits, mergeRequest, sumDonationSplits]);
+
+  useEffect(() => {
+    changeLocalAmount(amount);
+    setChangingAmount(null === amount);
+    splitBy(SplitMethod.Equal);
+  }, [open, amount, mergeRequest.authors.length, splitBy]);
+
+  useEffect(() => {
+    setDonation(initDonation);
+    setReview(initReview);
+  }, [initDonation, initReview, open]);
 
   const splitNeeded = mergeRequest.authors.length > 1;
   const leadAmountButton = !!(leadAmount && (null === localAmount || leadAmount > localAmount));

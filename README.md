@@ -26,6 +26,8 @@ by a Login Module admin, they are in the OAuth client page of the Login Module (
 And `NEXT_PUBLIC_TEZOS_SMART_CONTRACT_ADDRESS` is the address of the
 Tezos smart contract (cf below).
 
+Create a MySQL database and run `yarn prisma-push` to seed it.
+
 Finally, run the development server:
 
 ```
