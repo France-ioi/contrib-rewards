@@ -2,7 +2,7 @@ import {Modal, ModalContent} from "@nextui-org/react";
 import {DonationFull, MergeRequestWithAuthors} from "@/app/lib/definitions";
 import {UiButton} from "@/app/ui/button";
 import {createDonation, getRecipientEmailHashes} from "@/app/lib/data/donations";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import {inter} from "@/app/ui/fonts";
 import config from "@/app/lib/config";
 import {useSession} from "next-auth/react";
@@ -122,7 +122,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     setDonationSplits(newDonationSplits);
   };
 
-  const splitBy = (splitMethod: SplitMethod) => {
+  const splitBy = useCallback((splitMethod: SplitMethod) => {
     const methods: Record<SplitMethod, ((author: MergeRequestAuthor) => number)> = {
       [SplitMethod.LinesAdded]: author => author.linesAdded,
       [SplitMethod.LinesRemoved]: author => author.linesRemoved,
@@ -147,7 +147,7 @@ export default function ContributionModal({mergeRequest, amount, open, onClose, 
     }
 
     setDonationSplits(newDonationSplits);
-  };
+  }, [mergeRequest.authors]);
 
   const sumDonationSplits = Object.values(donationSplits).reduce((a, next) => a + next, 0);
 
