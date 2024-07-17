@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "prisma-format": "npx prisma-case-format --map-table-case snake --map-field-case snake",
-    "prisma-push": "npx prisma db push",
+    "prisma-push": "dotenv -e .env.local -- npx prisma db push",
     "generate-secrets": "tsx generate-secrets.ts"
   },
   "dependencies": {
@@ -22,6 +22,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@tzkt/sdk-api": "^2.2.1",
     "bcryptjs": "^2.4.3",
+    "dotenv-cli": "^7.4.2",
     "framer-motion": "^11.2.11",
     "next": "14.2.4",
     "next-auth": "^5.0.0-beta.19",
