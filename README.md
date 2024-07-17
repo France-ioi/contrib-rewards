@@ -42,14 +42,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 Here are the fields to specify in the login module configuration for this client:
 
 ```
-redirect: http://localhost:3000/api/auth/callback/france-ioi
-user_attributes: ["login","primary_email","first_name","last_name"]
-verifiable_attributes: ["primary_email"]
-recommended_attributes: ["picture"]
+Redirect: http://localhost:3000/api/auth/callback/france-ioi
+Required user attributes: login, first_name, last_name, primary_email
+Recommended user attributes: picture
+Verification: primary_email
+Verification methods: Sending a code by email
 ```
-
-Don't forget to add in `oauth_client_verification_method` the verification
-method corresponding to the `email_code` (cf table `verification_methods`).
 
 ## Tezos smart contract deployment
 

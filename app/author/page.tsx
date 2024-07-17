@@ -43,7 +43,7 @@ export default async function AuthorPage() {
     return (
       <main className="container mx-auto px-4">
         <div className="text-center text-xl text-project-focus mt-12">
-          You are currently not the author of any merge.
+          Your e-mail address is <span className="font-bold">{user.email}</span>. There is currently no commit associated with this e-mail address in the merges history.
         </div>
       </main>
     );
@@ -70,7 +70,7 @@ export default async function AuthorPage() {
       </div>
 
       <h2 className="text-4xl mb-8 mt-12">
-        Your merges
+        Your recent merges
       </h2>
 
       <div className="w-full flex flex-col gap-6">
